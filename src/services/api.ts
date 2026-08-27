@@ -63,21 +63,46 @@ export async function search(query: string, preferredQuality?: AudioQualityKey):
     return { songs: [], albums: [], artists: [], playlists: [] };
   }
 
-  const json = await fetchFromApi<any>(`/api/search?query=${encodeURIComponent(query.trim())}`);
-  const data = json?.data || {};
+  const cleanQuery = query.trim();
 
-  const songs: Song[] = (data.songs?.results || []).map((s: any) => normalizeSong(s, preferredQuality));
-  const albums: Album[] = (data.albums?.results || []).map((a: any) => normalizeAlbum(a));
-  const artists: Artist[] = (data.artists?.results || []).map((a: any) => normalizeArtist(a));
-  const playlists: Playlist[] = (data.playlists?.results || []).map((p: any) => normalizePlaylist(p));
+  try {
+    // Run global search and dedicated song search in parallel for best accuracy & download URLs
+    const [globalRes, dedicatedSongs] = await Promise.allSettled([
+      fetchFromApi<any>(`/api/search?query=${encodeURIComponent(cleanQuery)}`),
+      searchSongs(cleanQuery, preferredQuality)
+    ]);
 
-  return {
-    songs,
-    albums,
-    artists,
-    playlists,
-    topQuery: data.topQuery
-  };
+    const globalJson = globalRes.status === 'fulfilled' ? globalRes.value : null;
+    const data = globalJson?.data || {};
+
+    let songs: Song[] = [];
+    if (dedicatedSongs.status === 'fulfilled' && dedicatedSongs.value.length > 0) {
+      songs = dedicatedSongs.value;
+    } else {
+      songs = (data.songs?.results || []).map((s: any) => normalizeSong(s, preferredQuality));
+    }
+
+    const albums: Album[] = (data.albums?.results || []).map((a: any) => normalizeAlbum(a));
+    const artists: Artist[] = (data.artists?.results || []).map((a: any) => normalizeArtist(a));
+    const playlists: Playlist[] = (data.playlists?.results || []).map((p: any) => normalizePlaylist(p));
+
+    return {
+      songs,
+      albums,
+      artists,
+      playlists,
+      topQuery: data.topQuery
+    };
+  } catch (err) {
+    console.error('Universal search error, attempting dedicated song search fallback:', err);
+    const fallbackSongs = await searchSongs(cleanQuery, preferredQuality).catch(() => []);
+    return {
+      songs: fallbackSongs,
+      albums: [],
+      artists: [],
+      playlists: []
+    };
+  }
 }
 
 /**
@@ -121,14 +146,51 @@ export async function searchPlaylists(query: string): Promise<Playlist[]> {
 }
 
 /**
- * Get Song by ID
+ * Get Song by ID with resilient multi-endpoint fallback
  */
 export async function getSongById(id: string, preferredQuality?: AudioQualityKey): Promise<Song | null> {
   if (!id) return null;
-  const json = await fetchFromApi<any>(`/api/songs/${encodeURIComponent(id)}`);
-  const raw = Array.isArray(json?.data) ? json.data[0] : json?.data;
-  if (!raw) return null;
-  return normalizeSong(raw, preferredQuality);
+
+  // 1. Direct song ID endpoint: /api/songs/:id
+  try {
+    const json = await fetchFromApi<any>(`/api/songs/${encodeURIComponent(id)}`);
+    const raw = Array.isArray(json?.data) ? json.data[0] : json?.data;
+    if (raw) {
+      const normalized = normalizeSong(raw, preferredQuality);
+      if (normalized.playableUrl || normalized.audioUrls.length > 0) {
+        return normalized;
+      }
+    }
+  } catch (e) {
+    console.warn(`Direct song fetch /api/songs/${id} failed, trying query params:`, e);
+  }
+
+  // 2. Query param endpoint: /api/songs?ids=:id
+  try {
+    const json = await fetchFromApi<any>(`/api/songs?ids=${encodeURIComponent(id)}`);
+    const raw = Array.isArray(json?.data) ? json.data[0] : json?.data;
+    if (raw) {
+      const normalized = normalizeSong(raw, preferredQuality);
+      if (normalized.playableUrl || normalized.audioUrls.length > 0) {
+        return normalized;
+      }
+    }
+  } catch (e2) {
+    console.warn(`Query param /api/songs?ids=${id} failed:`, e2);
+  }
+
+  // 3. If ID is or contains a JioSaavn link: /api/songs?link=:link
+  if (id.includes('jiosaavn.com')) {
+    try {
+      const json = await fetchFromApi<any>(`/api/songs?link=${encodeURIComponent(id)}`);
+      const raw = Array.isArray(json?.data) ? json.data[0] : json?.data;
+      if (raw) return normalizeSong(raw, preferredQuality);
+    } catch (e3) {
+      console.warn(`Link query /api/songs?link=${id} failed:`, e3);
+    }
+  }
+
+  return null;
 }
 
 /**

@@ -36,19 +36,45 @@ export function extractImages(rawImage: any): ImageObject[] {
 }
 
 /**
+ * Helper to check if a URL is a valid audio stream URL
+ */
+export function isValidAudioStream(url?: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const clean = sanitizeAudioUrl(url);
+  if (!clean || clean.length < 12) return false;
+  // Discard JioSaavn website page links
+  if (
+    clean.includes('jiosaavn.com/song/') ||
+    clean.includes('jiosaavn.com/album/') ||
+    clean.includes('jiosaavn.com/featured/') ||
+    clean.includes('jiosaavn.com/artist/')
+  ) {
+    return false;
+  }
+  return clean.startsWith('http://') || clean.startsWith('https://');
+}
+
+/**
  * Extract audio URLs and select best playable URL
  */
 export function extractAudioUrls(rawDownload: any, preferredQuality: AudioQualityKey = '320kbps'): { audioUrls: AudioUrl[]; playableUrl: string } {
   let audioUrls: AudioUrl[] = [];
 
   if (Array.isArray(rawDownload)) {
-    audioUrls = rawDownload.map(item => ({
-      quality: item?.quality || item?.bitrate || '',
-      url: sanitizeAudioUrl(item?.url || item?.link || '')
-    })).filter(item => Boolean(item.url));
+    audioUrls = rawDownload
+      .map(item => {
+        const url = sanitizeAudioUrl(item?.url || item?.link || (typeof item === 'string' ? item : ''));
+        return {
+          quality: String(item?.quality || item?.bitrate || 'default'),
+          url
+        };
+      })
+      .filter(item => isValidAudioStream(item.url));
   } else if (typeof rawDownload === 'string') {
     const clean = sanitizeAudioUrl(rawDownload);
-    if (clean) audioUrls = [{ quality: 'default', url: clean }];
+    if (isValidAudioStream(clean)) {
+      audioUrls = [{ quality: 'default', url: clean }];
+    }
   }
 
   // Find preferred quality, or fall back to highest available bitrate
@@ -62,7 +88,8 @@ export function extractAudioUrls(rawDownload: any, preferredQuality: AudioQualit
       const fallback320 = audioUrls.find(a => a.quality?.includes('320'));
       const fallback160 = audioUrls.find(a => a.quality?.includes('160'));
       const fallback96 = audioUrls.find(a => a.quality?.includes('96'));
-      playableUrl = fallback320?.url || fallback160?.url || fallback96?.url || audioUrls[audioUrls.length - 1]?.url || '';
+      const fallback48 = audioUrls.find(a => a.quality?.includes('48'));
+      playableUrl = fallback320?.url || fallback160?.url || fallback96?.url || fallback48?.url || audioUrls[audioUrls.length - 1]?.url || '';
     }
   }
 
@@ -142,7 +169,7 @@ export function normalizeSong(raw: any, preferredQuality: AudioQualityKey = '320
   );
 
   const { audioUrls, playableUrl } = extractAudioUrls(
-    raw.downloadUrl || raw.downloadUrls || raw.media_urls || raw.url || raw.media_preview_url,
+    raw.downloadUrl || raw.downloadUrls || raw.media_urls || raw.more_info?.encrypted_media_url || raw.media_preview_url || raw.stream_url,
     preferredQuality
   );
 

@@ -3,6 +3,7 @@ import { Song, RepeatMode, AudioQualityKey } from '../types/music';
 import { storage } from '../utils/storage';
 import { getSongById, getSongSuggestions, searchSongs } from '../services/api';
 import { sanitizeAudioUrl } from '../utils/formatters';
+import { isValidAudioStream } from '../services/normalizers';
 
 interface PlayerContextType {
   currentSong: Song | null;
@@ -220,26 +221,45 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsLoading(true);
 
     try {
-      let resolvedSong: Song = song;
+      let resolvedSong: Song = { ...song };
 
-      // If song lacks playableUrl or full details, fetch full song details
-      if (!resolvedSong.playableUrl || resolvedSong.audioUrls.length === 0) {
+      // If song lacks valid stream or audioUrls, fetch full song details
+      const hasValidPlayableUrl = isValidAudioStream(resolvedSong.playableUrl);
+      const hasValidAudioList = Array.isArray(resolvedSong.audioUrls) && resolvedSong.audioUrls.some(a => isValidAudioStream(a.url));
+
+      if (!hasValidPlayableUrl || !hasValidAudioList) {
         try {
-          const detailed = await getSongById(song.id, audioQuality);
-          if (detailed && detailed.playableUrl) {
-            resolvedSong = detailed;
+          if (song.id) {
+            const detailed = await getSongById(song.id, audioQuality);
+            if (detailed && (isValidAudioStream(detailed.playableUrl) || detailed.audioUrls.some(a => isValidAudioStream(a.url)))) {
+              resolvedSong = {
+                ...resolvedSong,
+                ...detailed,
+                image: detailed.image || resolvedSong.image,
+                title: detailed.title || resolvedSong.title,
+                artist: detailed.artist || resolvedSong.artist,
+              };
+            }
           }
         } catch (e) {
           console.warn('Could not fetch complete song detail, using basic model:', e);
         }
       }
 
-      const streamUrl = sanitizeAudioUrl(resolvedSong.playableUrl || resolvedSong.audioUrls?.[0]?.url);
-
-      if (!streamUrl) {
-        throw new Error('No playable audio stream available for this song.');
+      // Pick best playable URL
+      let streamUrl = isValidAudioStream(resolvedSong.playableUrl) ? sanitizeAudioUrl(resolvedSong.playableUrl) : '';
+      if (!streamUrl && Array.isArray(resolvedSong.audioUrls)) {
+        const match = resolvedSong.audioUrls.find(a => isValidAudioStream(a.url));
+        if (match) {
+          streamUrl = sanitizeAudioUrl(match.url);
+        }
       }
 
+      if (!streamUrl) {
+        throw new Error('No playable audio stream available for this song. Please try another song.');
+      }
+
+      resolvedSong.playableUrl = streamUrl;
       setCurrentSong(resolvedSong);
       storage.addRecentlyPlayed(resolvedSong);
 
@@ -292,7 +312,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     } catch (err: any) {
       console.error('Error starting playback:', err);
-      setError(err?.message || 'Failed to play track. Audio URL could not be resolved.');
+      setError(err?.message || 'Failed to play track. Audio stream could not be loaded.');
       setIsPlaying(false);
     } finally {
       setIsLoading(false);
