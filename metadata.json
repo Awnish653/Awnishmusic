@@ -1,0 +1,6 @@
+{
+  "name": "AWNISH MUSIC",
+  "description": "A premium, dark-mode music streaming and discovery web application powered by JioSaavn-compatible API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
