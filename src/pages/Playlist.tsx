@@ -8,6 +8,7 @@ import { DetailHeroSkeleton, RowSkeleton } from '../components/LoadingSkeleton';
 import { ErrorState } from '../components/FeedbackStates';
 import { usePlayer } from '../context/PlayerContext';
 import { formatDuration } from '../utils/formatters';
+import { ImageWithFallback } from '../utils/image';
 
 export const Playlist: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,23 +83,25 @@ export const Playlist: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto pb-32 animate-fade-in">
       {/* Hero Header */}
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-gradient-to-b from-violet-950/40 via-zinc-900/60 to-zinc-900/30 border border-white/10 shadow-2xl">
-        <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden bg-zinc-800 shadow-2xl shrink-0 ring-1 ring-white/10">
-          <img
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-gradient-to-b from-violet-950/50 via-zinc-900/80 to-zinc-900/40 border border-white/10 shadow-2xl">
+        <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden bg-zinc-800 shadow-2xl shrink-0 ring-1 ring-white/15">
+          <ImageWithFallback
             src={playlist.image}
             alt={playlist.name}
+            fallbackTitle={playlist.name}
+            type="playlist"
+            containerClassName="w-full h-full"
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
         </div>
 
         <div className="flex flex-col space-y-3 text-center md:text-left flex-1 min-w-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-semibold self-center md:self-start">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-bold self-center md:self-start border border-white/10">
             <ListMusic className="w-3.5 h-3.5" />
             <span>Curated Playlist</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight break-words">
+          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight break-words">
             {playlist.name}
           </h1>
 
@@ -108,9 +111,9 @@ export const Playlist: React.FC = () => {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-300">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-300 font-medium">
             {playlist.username && (
-              <span className="flex items-center gap-1 font-semibold text-white">
+              <span className="flex items-center gap-1 font-bold text-white">
                 <User className="w-3 h-3 text-indigo-400" />
                 {playlist.username}
               </span>
@@ -124,7 +127,7 @@ export const Playlist: React.FC = () => {
             <button
               onClick={handlePlayAll}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Play All</span>
@@ -144,7 +147,7 @@ export const Playlist: React.FC = () => {
 
       {/* Song list */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between px-4 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-white/5">
           <div className="flex items-center gap-4">
             <span className="w-6 text-center">#</span>
             <span>Title</span>

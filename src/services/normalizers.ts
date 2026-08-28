@@ -1,22 +1,12 @@
 import { Song, Album, Artist, Playlist, AudioUrl, ImageObject, ArtistMini, AudioQualityKey } from '../types/music';
 import { decodeHtml, sanitizeAudioUrl } from '../utils/formatters';
-
-const DEFAULT_COVER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
+import { getSafeImageUrl, generateFallbackCover } from '../utils/image';
 
 /**
- * Extract the highest resolution image from image array or string
+ * Extract the highest resolution image from image array or string with full fallback
  */
-export function extractBestImage(rawImage: any): string {
-  if (!rawImage) return DEFAULT_COVER;
-  if (typeof rawImage === 'string') return rawImage;
-  if (Array.isArray(rawImage) && rawImage.length > 0) {
-    // Try to find 500x500 first, or last in array (usually highest quality)
-    const best = rawImage.find((img: any) => img?.quality === '500x500') ||
-                 rawImage.find((img: any) => img?.quality === '150x150') ||
-                 rawImage[rawImage.length - 1];
-    return best?.url || rawImage[0]?.url || DEFAULT_COVER;
-  }
-  return DEFAULT_COVER;
+export function extractBestImage(rawImage: any, fallbackTitle: string = 'AwnishX', type: 'song' | 'artist' | 'album' | 'playlist' = 'song'): string {
+  return getSafeImageUrl(rawImage, fallbackTitle, type);
 }
 
 /**
@@ -26,7 +16,7 @@ export function extractImages(rawImage: any): ImageObject[] {
   if (Array.isArray(rawImage)) {
     return rawImage.map(img => ({
       quality: img?.quality || '',
-      url: img?.url || ''
+      url: typeof img === 'string' ? img : img?.url || img?.link || ''
     }));
   }
   if (typeof rawImage === 'string') {
@@ -157,7 +147,7 @@ export function normalizeSong(raw: any, preferredQuality: AudioQualityKey = '320
       title: 'Unknown Track',
       artist: 'Unknown Artist',
       artists: [],
-      image: DEFAULT_COVER,
+      image: generateFallbackCover('Track', 'song'),
       audioUrls: [],
       playableUrl: ''
     };
@@ -179,9 +169,11 @@ export function normalizeSong(raw: any, preferredQuality: AudioQualityKey = '320
 
   const albumId = typeof raw.album === 'object' ? raw.album?.id : raw.albumId || raw.more_info?.album_id || '';
 
+  const title = decodeHtml(raw.name || raw.title || raw.song || 'Unknown Song');
+
   return {
     id: String(raw.id || raw.songId || ''),
-    title: decodeHtml(raw.name || raw.title || raw.song || 'Unknown Song'),
+    title,
     subtitle: decodeHtml(raw.subtitle || raw.description || ''),
     artist: artistString,
     artists,
@@ -190,7 +182,7 @@ export function normalizeSong(raw: any, preferredQuality: AudioQualityKey = '320
       name: albumName,
       url: typeof raw.album === 'object' ? raw.album?.url : undefined
     },
-    image: extractBestImage(raw.image || raw.images),
+    image: extractBestImage(raw.image || raw.images, title, 'song'),
     images: extractImages(raw.image || raw.images),
     duration: typeof raw.duration === 'string' ? parseInt(raw.duration, 10) : raw.duration || 0,
     releaseDate: raw.releaseDate || raw.year || '',
@@ -209,9 +201,10 @@ export function normalizeSong(raw: any, preferredQuality: AudioQualityKey = '320
  */
 export function normalizeAlbum(raw: any): Album {
   if (!raw) {
-    return { id: '', name: 'Unknown Album', image: DEFAULT_COVER };
+    return { id: '', name: 'Unknown Album', image: extractBestImage(null, 'Unknown Album', 'album') };
   }
 
+  const albumName = decodeHtml(raw.name || raw.title || 'Unknown Album');
   const songs: Song[] = Array.isArray(raw.songs) ? raw.songs.map((s: any) => normalizeSong(s)) : [];
 
   let artistName = '';
@@ -229,15 +222,15 @@ export function normalizeAlbum(raw: any): Album {
 
   return {
     id: String(raw.id || ''),
-    name: decodeHtml(raw.name || raw.title || 'Unknown Album'),
-    title: decodeHtml(raw.name || raw.title || 'Unknown Album'),
+    name: albumName,
+    title: albumName,
     description: decodeHtml(raw.description || ''),
     year: raw.year || '',
     type: raw.type || 'album',
     language: raw.language || '',
     songCount: raw.songCount || songs.length || (raw.songs ? raw.songs.length : 0),
     artist: artistName || 'Various Artists',
-    image: extractBestImage(raw.image || raw.images),
+    image: extractBestImage(raw.image || raw.images, albumName, 'album'),
     images: extractImages(raw.image || raw.images),
     songs,
     url: raw.url,
@@ -250,9 +243,10 @@ export function normalizeAlbum(raw: any): Album {
  */
 export function normalizeArtist(raw: any): Artist {
   if (!raw) {
-    return { id: '', name: 'Unknown Artist', image: DEFAULT_COVER };
+    return { id: '', name: 'Unknown Artist', image: extractBestImage(null, 'Unknown Artist', 'artist') };
   }
 
+  const artistName = decodeHtml(raw.name || raw.title || 'Unknown Artist');
   const topSongs: Song[] = Array.isArray(raw.topSongs) ? raw.topSongs.map((s: any) => normalizeSong(s)) : [];
   const topAlbums: Album[] = Array.isArray(raw.topAlbums) ? raw.topAlbums.map((a: any) => normalizeAlbum(a)) : [];
   const singles: Album[] = Array.isArray(raw.singles) ? raw.singles.map((a: any) => normalizeAlbum(a)) : [];
@@ -261,15 +255,15 @@ export function normalizeArtist(raw: any): Artist {
     ? raw.similarArtists.map((a: any) => ({
         id: a.id || a.name || '',
         name: decodeHtml(a.name || 'Artist'),
-        image: extractBestImage(a.image),
+        image: extractBestImage(a.image, decodeHtml(a.name || 'Artist'), 'artist'),
         url: a.url
       }))
     : [];
 
   return {
     id: String(raw.id || ''),
-    name: decodeHtml(raw.name || raw.title || 'Unknown Artist'),
-    image: extractBestImage(raw.image || raw.images),
+    name: artistName,
+    image: extractBestImage(raw.image || raw.images, artistName, 'artist'),
     images: extractImages(raw.image || raw.images),
     role: raw.role || 'Artist',
     followerCount: raw.followerCount || raw.fanCount || '0',
@@ -290,15 +284,16 @@ export function normalizeArtist(raw: any): Artist {
  */
 export function normalizePlaylist(raw: any): Playlist {
   if (!raw) {
-    return { id: '', name: 'Unknown Playlist', image: DEFAULT_COVER };
+    return { id: '', name: 'Unknown Playlist', image: extractBestImage(null, 'Unknown Playlist', 'playlist') };
   }
 
+  const playlistName = decodeHtml(raw.name || raw.title || 'Unknown Playlist');
   const songs: Song[] = Array.isArray(raw.songs) ? raw.songs.map((s: any) => normalizeSong(s)) : [];
 
   return {
     id: String(raw.id || ''),
-    name: decodeHtml(raw.name || raw.title || 'Unknown Playlist'),
-    title: decodeHtml(raw.name || raw.title || 'Unknown Playlist'),
+    name: playlistName,
+    title: playlistName,
     description: decodeHtml(raw.description || raw.subtitle || ''),
     year: raw.year || '',
     type: raw.type || 'playlist',
@@ -310,7 +305,7 @@ export function normalizePlaylist(raw: any): Playlist {
     username: raw.username || raw.firstname || 'Curator',
     firstname: raw.firstname,
     lastname: raw.lastname,
-    image: extractBestImage(raw.image || raw.images),
+    image: extractBestImage(raw.image || raw.images, playlistName, 'playlist'),
     images: extractImages(raw.image || raw.images),
     songs,
     url: raw.url,

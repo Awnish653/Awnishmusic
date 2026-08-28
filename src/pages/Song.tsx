@@ -12,7 +12,8 @@ import {
   Clock,
   Sparkles,
   Music2,
-  Sliders
+  Sliders,
+  Download
 } from 'lucide-react';
 import { getSongById, getSongSuggestions, searchSongs } from '../services/api';
 import { Song as SongType } from '../types/music';
@@ -22,6 +23,7 @@ import { ErrorState } from '../components/FeedbackStates';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
 import { formatDuration, formatCount } from '../utils/formatters';
+import { ImageWithFallback } from '../utils/image';
 
 export const SongPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +36,8 @@ export const SongPage: React.FC = () => {
     addToQueue,
     playNextInQueue,
     audioQuality,
-    setAudioQuality
+    setAudioQuality,
+    openDownloadModal
   } = usePlayer();
 
   const { isSongLiked, toggleLike, setActiveSongForModal } = useLibrary();
@@ -106,19 +109,21 @@ export const SongPage: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 space-y-10 max-w-7xl mx-auto pb-32 animate-fade-in">
       {/* Song Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-950/60 via-zinc-900/80 to-zinc-950 border border-white/10 p-6 sm:p-10 shadow-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-950/70 via-zinc-900/90 to-zinc-950 border border-white/10 p-6 sm:p-10 shadow-2xl">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-6 sm:gap-8">
           {/* Cover Art */}
-          <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl overflow-hidden bg-zinc-800 shadow-2xl ring-1 ring-white/10 shrink-0">
-            <img
+          <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl overflow-hidden bg-zinc-800 shadow-2xl ring-1 ring-white/15 shrink-0">
+            <ImageWithFallback
               src={song.image}
               alt={song.title}
+              fallbackTitle={song.title}
+              type="song"
+              containerClassName="w-full h-full"
               className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
             />
             {isCurrent && isPlaying && (
-              <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md flex items-center gap-1.5 border border-white/10">
-                <span className="w-1.5 h-3.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }} />
+              <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-black/75 backdrop-blur-md flex items-center gap-1.5 border border-white/10">
+                <span className="w-1.5 h-3.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }} />
                 <span className="w-1.5 h-5 bg-violet-400 rounded-full animate-bounce" style={{ animationDuration: '0.4s' }} />
                 <span className="w-1.5 h-2.5 bg-indigo-300 rounded-full animate-bounce" style={{ animationDuration: '0.7s' }} />
               </div>
@@ -127,12 +132,12 @@ export const SongPage: React.FC = () => {
 
           {/* Meta & Controls */}
           <div className="flex flex-col space-y-3 text-center md:text-left flex-1 min-w-0">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-semibold self-center md:self-start">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-bold self-center md:self-start border border-white/10">
               <Music2 className="w-3.5 h-3.5" />
               <span>Track Details</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight break-words">
+            <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight break-words">
               {song.title}
             </h1>
 
@@ -141,7 +146,7 @@ export const SongPage: React.FC = () => {
                 onClick={() => {
                   if (song.artists?.[0]?.id) navigate(`/artist/${song.artists[0].id}`);
                 }}
-                className="text-sm font-semibold text-zinc-300 hover:text-indigo-400 cursor-pointer"
+                className="text-sm font-bold text-zinc-300 hover:text-indigo-400 cursor-pointer"
               >
                 {song.artist}
               </p>
@@ -157,7 +162,7 @@ export const SongPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 pt-1">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 pt-1 font-medium">
               {song.duration && <span>{formatDuration(song.duration)}</span>}
               {song.year && <span>• {song.year}</span>}
               {song.language && <span className="capitalize">• {song.language}</span>}
@@ -168,7 +173,7 @@ export const SongPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-3">
               <button
                 onClick={handlePlayAction}
-                className="flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95"
               >
                 {isCurrent && isPlaying ? (
                   <>
@@ -181,6 +186,15 @@ export const SongPage: React.FC = () => {
                     <span>Play Now</span>
                   </>
                 )}
+              </button>
+
+              <button
+                onClick={() => openDownloadModal(song)}
+                className="flex items-center gap-2 px-4 py-3.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-cyan-400 font-semibold text-xs border border-white/10 transition"
+                title="Download MP3"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download</span>
               </button>
 
               <button
@@ -241,7 +255,7 @@ export const SongPage: React.FC = () => {
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-xl font-bold text-white tracking-tight">You May Also Like</h2>
+            <h2 className="text-xl font-black text-white tracking-tight">You May Also Like</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {suggestions.map(rec => (

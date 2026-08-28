@@ -21,6 +21,7 @@ interface PlayerContextType {
   suggestions: Song[];
   isQueueOpen: boolean;
   isFullscreenOpen: boolean;
+  downloadSongModal: Song | null;
   error: string | null;
   playSong: (song: Song, newQueue?: Song[]) => Promise<void>;
   togglePlay: () => void;
@@ -41,6 +42,8 @@ interface PlayerContextType {
   reorderQueue: (fromIndex: number, toIndex: number) => void;
   setIsQueueOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   setIsFullscreenOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  openDownloadModal: (song: Song) => void;
+  closeDownloadModal: () => void;
   retryPlayback: () => void;
 }
 
@@ -63,7 +66,16 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [suggestions, setSuggestions] = useState<Song[]>([]);
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState<boolean>(false);
+  const [downloadSongModal, setDownloadSongModal] = useState<Song | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const openDownloadModal = useCallback((song: Song) => {
+    setDownloadSongModal(song);
+  }, []);
+
+  const closeDownloadModal = useCallback(() => {
+    setDownloadSongModal(null);
+  }, []);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousVolumeRef = useRef<number>(volume);
@@ -569,6 +581,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         suggestions,
         isQueueOpen,
         isFullscreenOpen,
+        downloadSongModal,
         error,
         playSong,
         togglePlay,
@@ -589,6 +602,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         reorderQueue,
         setIsQueueOpen,
         setIsFullscreenOpen,
+        openDownloadModal,
+        closeDownloadModal,
         retryPlayback
       }}
     >

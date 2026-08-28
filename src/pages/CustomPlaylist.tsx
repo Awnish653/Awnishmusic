@@ -17,6 +17,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { SongRow } from '../components/SongRow';
 import { EmptyState } from '../components/FeedbackStates';
 import { formatDuration } from '../utils/formatters';
+import { ImageWithFallback } from '../utils/image';
 
 export const CustomPlaylist: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -95,13 +96,15 @@ export const CustomPlaylist: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-gradient-to-b from-indigo-950/40 via-zinc-900/60 to-zinc-900/30 border border-white/10 shadow-2xl">
         {/* Cover Art */}
-        <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-2xl shrink-0 overflow-hidden ring-1 ring-white/10">
+        <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-2xl shrink-0 overflow-hidden ring-1 ring-white/15">
           {playlist.image ? (
-            <img
+            <ImageWithFallback
               src={playlist.image}
               alt={playlist.name}
+              fallbackTitle={playlist.name}
+              type="playlist"
+              containerClassName="w-full h-full"
               className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
             />
           ) : (
             <Music2 className="w-20 h-20 text-white/80" />
@@ -134,7 +137,7 @@ export const CustomPlaylist: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition"
                 >
                   <Check className="w-3.5 h-3.5" />
                   Save
@@ -152,7 +155,7 @@ export const CustomPlaylist: React.FC = () => {
           ) : (
             <>
               <div className="flex items-center justify-center md:justify-start gap-3">
-                <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight break-words">
+                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight break-words">
                   {playlist.name}
                 </h1>
                 <button
@@ -174,7 +177,7 @@ export const CustomPlaylist: React.FC = () => {
                 </p>
               )}
 
-              <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-zinc-300">
+              <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-zinc-300 font-medium">
                 <span>{songs.length} songs</span>
                 {totalDurationSecs > 0 && <span>• {formatDuration(totalDurationSecs)}</span>}
               </div>
@@ -183,7 +186,7 @@ export const CustomPlaylist: React.FC = () => {
                 <button
                   onClick={handlePlayAll}
                   disabled={songs.length === 0}
-                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
                 >
                   <Play className="w-4 h-4 fill-white" />
                   <span>Play All</span>
@@ -240,7 +243,7 @@ export const CustomPlaylist: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between px-4 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider border-b border-white/5">
+            <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-white/5">
               <div className="flex items-center gap-4">
                 <span className="w-6 text-center">#</span>
                 <span>Title</span>

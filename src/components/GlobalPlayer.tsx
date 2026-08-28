@@ -15,13 +15,15 @@ import {
   Maximize2,
   Sliders,
   Check,
-  Disc3
+  Disc3,
+  Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
 import { formatDuration } from '../utils/formatters';
 import { AudioQualityKey } from '../types/music';
+import { ImageWithFallback } from '../utils/image';
 
 export const GlobalPlayer: React.FC = () => {
   const navigate = useNavigate();
@@ -47,10 +49,11 @@ export const GlobalPlayer: React.FC = () => {
     setAudioQuality,
     setIsQueueOpen,
     isQueueOpen,
-    setIsFullscreenOpen
+    setIsFullscreenOpen,
+    openDownloadModal
   } = usePlayer();
 
-  const { isSongLiked, toggleLike, setActiveSongForModal } = useLibrary();
+  const { isSongLiked, toggleLike } = useLibrary();
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekValue, setSeekValue] = useState(0);
@@ -80,28 +83,33 @@ export const GlobalPlayer: React.FC = () => {
   const qualities: AudioQualityKey[] = ['320kbps', '160kbps', '96kbps', '48kbps', '12kbps'];
 
   return (
-    <div className="hidden md:flex fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/95 backdrop-blur-2xl border-t border-white/10 z-50 px-6 items-center justify-between shadow-2xl">
-      {/* LEFT SECTION: Song Details & Like */}
-      <div className="flex items-center gap-4 w-1/4 min-w-[220px]">
+    <div className="hidden md:flex fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/10 z-50 px-6 items-center justify-between shadow-2xl">
+      {/* Background Subtle Gradient Glow */}
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/20 via-transparent to-violet-950/20 pointer-events-none" />
+
+      {/* LEFT SECTION: Song Details & Like & Download */}
+      <div className="relative z-10 flex items-center gap-4 w-1/4 min-w-[240px]">
         <div
           onClick={() => navigate(`/song/${currentSong.id}`)}
-          className="relative w-14 h-14 rounded-xl overflow-hidden bg-zinc-900 shrink-0 cursor-pointer group shadow-md"
+          className="relative w-14 h-14 rounded-2xl overflow-hidden bg-zinc-900 shrink-0 cursor-pointer group shadow-lg ring-1 ring-white/10"
         >
-          <img
+          <ImageWithFallback
             src={currentSong.image}
             alt={currentSong.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            referrerPolicy="no-referrer"
+            fallbackTitle={currentSong.title}
+            type="song"
+            containerClassName="w-full h-full"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Disc3 className="w-5 h-5 text-white animate-spin" style={{ animationDuration: '3s' }} />
           </div>
         </div>
 
-        <div className="flex flex-col min-w-0 pr-2">
+        <div className="flex flex-col min-w-0 pr-1">
           <span
             onClick={() => navigate(`/song/${currentSong.id}`)}
-            className="text-sm font-semibold text-white truncate hover:underline cursor-pointer"
+            className="text-sm font-bold text-white truncate hover:text-indigo-400 cursor-pointer transition-colors"
             title={currentSong.title}
           >
             {currentSong.title}
@@ -119,19 +127,30 @@ export const GlobalPlayer: React.FC = () => {
           </span>
         </div>
 
-        <button
-          onClick={() => toggleLike(currentSong)}
-          aria-label={liked ? 'Unlike song' : 'Like song'}
-          className={`p-2 rounded-full transition shrink-0 ${
-            liked ? 'text-rose-500 hover:text-rose-400' : 'text-zinc-400 hover:text-white'
-          }`}
-        >
-          <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500' : ''}`} />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => toggleLike(currentSong)}
+            aria-label={liked ? 'Unlike song' : 'Like song'}
+            className={`p-2 rounded-xl transition ${
+              liked ? 'text-rose-500 hover:text-rose-400 bg-rose-500/10' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500' : ''}`} />
+          </button>
+
+          <button
+            onClick={() => openDownloadModal(currentSong)}
+            aria-label="Download current song"
+            title="Download Audio"
+            className="p-2 rounded-xl text-zinc-400 hover:text-cyan-400 hover:bg-zinc-800 transition"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* CENTER SECTION: Controls & Progress Bar */}
-      <div className="flex flex-col items-center gap-2 max-w-xl w-2/4 px-4">
+      <div className="relative z-10 flex flex-col items-center gap-2 max-w-xl w-2/4 px-4">
         {/* Buttons */}
         <div className="flex items-center gap-5">
           {/* Shuffle */}
@@ -160,7 +179,7 @@ export const GlobalPlayer: React.FC = () => {
             onClick={togglePlay}
             disabled={isLoading}
             aria-label={isPlaying ? 'Pause' : 'Play'}
-            className="w-11 h-11 rounded-full bg-white hover:bg-zinc-200 text-black flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-80"
+            className="w-11 h-11 rounded-full bg-gradient-to-r from-white to-zinc-200 hover:from-zinc-100 hover:to-white text-zinc-950 flex items-center justify-center shadow-xl shadow-white/10 transition-transform hover:scale-105 active:scale-95 disabled:opacity-80 font-bold"
           >
             {isLoading ? (
               <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -203,7 +222,7 @@ export const GlobalPlayer: React.FC = () => {
             {/* Background bar */}
             <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
               <div
-                className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 group-hover:from-violet-400 group-hover:to-cyan-400 rounded-full"
+                className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 rounded-full shadow-sm"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -232,23 +251,23 @@ export const GlobalPlayer: React.FC = () => {
       </div>
 
       {/* RIGHT SECTION: Audio Quality, Volume, Queue & Expand */}
-      <div className="flex items-center justify-end gap-3 w-1/4 min-w-[220px]">
+      <div className="relative z-10 flex items-center justify-end gap-3 w-1/4 min-w-[240px]">
         {/* Audio Quality Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowQualityMenu(!showQualityMenu)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-zinc-300 transition"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-xs text-zinc-300 transition"
             title="Audio Streaming Quality"
           >
             <Sliders className="w-3 h-3 text-indigo-400" />
-            <span className="font-mono text-[11px]">{audioQuality}</span>
+            <span className="font-mono text-[11px] font-semibold">{audioQuality}</span>
           </button>
 
           {showQualityMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowQualityMenu(false)} />
-              <div className="absolute right-0 bottom-full mb-2 w-36 p-1 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 text-xs">
-                <p className="text-[10px] font-semibold text-zinc-400 px-2 py-1 uppercase tracking-wider">
+              <div className="absolute right-0 bottom-full mb-2 w-40 p-1.5 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl z-50 text-xs">
+                <p className="text-[10px] font-bold text-zinc-400 px-2 py-1 uppercase tracking-wider">
                   Audio Quality
                 </p>
                 {qualities.map(q => (
@@ -258,12 +277,12 @@ export const GlobalPlayer: React.FC = () => {
                       setAudioQuality(q);
                       setShowQualityMenu(false);
                     }}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition ${
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition ${
                       audioQuality === q ? 'bg-indigo-600/30 text-indigo-300 font-bold' : 'text-zinc-300 hover:bg-zinc-800'
                     }`}
                   >
                     <span>{q}</span>
-                    {audioQuality === q && <Check className="w-3 h-3 text-indigo-400" />}
+                    {audioQuality === q && <Check className="w-3.5 h-3.5 text-indigo-400" />}
                   </button>
                 ))}
               </div>
@@ -313,7 +332,7 @@ export const GlobalPlayer: React.FC = () => {
           aria-label="Toggle Queue"
           className={`p-2 rounded-xl border transition ${
             isQueueOpen
-              ? 'bg-indigo-600 border-indigo-500 text-white'
+              ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30'
               : 'bg-zinc-900/80 hover:bg-zinc-800 border-white/10 text-zinc-300 hover:text-white'
           }`}
           title="Playing Queue"

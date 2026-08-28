@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, MoreVertical, Plus, ListPlus, Radio, Disc3 } from 'lucide-react';
+import { Play, Pause, Heart, MoreVertical, Plus, ListPlus, Radio, Disc3, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Song } from '../types/music';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
-import { formatDuration } from '../utils/formatters';
+import { ImageWithFallback } from '../utils/image';
 
 interface SongCardProps {
   song: Song;
@@ -13,7 +13,7 @@ interface SongCardProps {
 
 export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
   const navigate = useNavigate();
-  const { currentSong, isPlaying, playSong, togglePlay, addToQueue, playNextInQueue } = usePlayer();
+  const { currentSong, isPlaying, playSong, togglePlay, addToQueue, playNextInQueue, openDownloadModal } = usePlayer();
   const { isSongLiked, toggleLike, setActiveSongForModal } = useLibrary();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -43,16 +43,17 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
           playSong(song, queueContext);
         }
       }}
-      className="group relative flex flex-col p-3 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/80 border border-white/5 hover:border-white/15 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-indigo-950/20"
+      className="group relative flex flex-col p-3 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/80 border border-white/5 hover:border-white/15 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-indigo-950/30"
     >
       {/* Artwork Container */}
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-800 mb-3">
-        <img
+      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-800 mb-3 shadow-inner">
+        <ImageWithFallback
           src={song.image}
           alt={song.title}
-          loading="lazy"
+          fallbackTitle={song.title}
+          type="song"
+          containerClassName="w-full h-full"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          referrerPolicy="no-referrer"
         />
 
         {/* Hover Gradient Overlay */}
@@ -94,15 +95,25 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                   }}
                 />
                 <div
-                  className="absolute right-0 bottom-full mb-2 w-48 py-1.5 rounded-xl bg-zinc-900 border border-white/10 shadow-2xl z-50 text-xs text-zinc-200"
+                  className="absolute right-0 bottom-full mb-2 w-52 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 shadow-2xl z-50 text-xs text-zinc-200"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <button
+                    onClick={() => {
+                      openDownloadModal(song);
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-indigo-600/20 hover:text-indigo-300 text-left transition font-semibold"
+                  >
+                    <Download className="w-4 h-4 text-indigo-400" />
+                    Download MP3 (HD)
+                  </button>
                   <button
                     onClick={() => {
                       addToQueue(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
                   >
                     <ListPlus className="w-4 h-4 text-zinc-400" />
                     Add to Queue
@@ -112,7 +123,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                       playNextInQueue(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
                   >
                     <Radio className="w-4 h-4 text-zinc-400" />
                     Play Next
@@ -122,7 +133,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                       setActiveSongForModal(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
                   >
                     <Plus className="w-4 h-4 text-zinc-400" />
                     Add to Playlist
@@ -133,7 +144,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                         navigate(`/album/${song.album?.id}`);
                         setShowMenu(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
                     >
                       <Disc3 className="w-4 h-4 text-zinc-400" />
                       View Album
@@ -164,10 +175,10 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
 
         {/* Equalizer Wave Indicator if current and playing */}
         {isCurrent && isPlaying && (
-          <div className="absolute top-2.5 left-2.5 px-2 py-1 rounded-full bg-black/60 backdrop-blur-md flex items-center gap-1">
-            <span className="w-1 h-3 bg-indigo-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }} />
-            <span className="w-1 h-4 bg-violet-400 rounded-full animate-bounce" style={{ animationDuration: '0.4s' }} />
-            <span className="w-1 h-2 bg-indigo-300 rounded-full animate-bounce" style={{ animationDuration: '0.7s' }} />
+          <div className="absolute top-2.5 left-2.5 px-2 py-1 rounded-full bg-black/70 backdrop-blur-md flex items-center gap-1">
+            <span className="w-1 h-3 bg-cyan-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }} />
+            <span className="w-1 h-4 bg-indigo-400 rounded-full animate-bounce" style={{ animationDuration: '0.4s' }} />
+            <span className="w-1 h-2 bg-fuchsia-400 rounded-full animate-bounce" style={{ animationDuration: '0.7s' }} />
           </div>
         )}
       </div>
@@ -175,7 +186,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
       {/* Info Section */}
       <div className="flex flex-col min-w-0">
         <h4
-          className={`text-sm font-semibold truncate leading-tight transition ${
+          className={`text-sm font-bold truncate leading-tight tracking-tight transition ${
             isCurrent ? 'text-indigo-400' : 'text-zinc-100 group-hover:text-white'
           }`}
           title={song.title}

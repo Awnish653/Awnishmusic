@@ -1,6 +1,6 @@
 {
-  "name": "AWNISH MUSIC",
-  "description": "A premium, dark-mode music streaming and discovery web application powered by JioSaavn-compatible API.",
+  "name": "AwnishX Music",
+  "description": "Next-Gen Lossless Music Streaming & Discovery Platform with studio-fidelity audio and fast playback.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -16,6 +16,7 @@ import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
 import { SongCard } from '../components/SongCard';
 import { AudioQualityKey } from '../types/music';
+import { ImageWithFallback } from '../utils/image';
 
 export const Library: React.FC = () => {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export const Library: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">Your Library</h1>
+          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Your Library</h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
             Manage your liked tracks, playlists, history, and audio streaming preferences.
           </p>
@@ -56,7 +57,7 @@ export const Library: React.FC = () => {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/20 transition"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 transition"
         >
           <PlusCircle className="w-4 h-4" />
           <span>New Playlist</span>
@@ -74,12 +75,12 @@ export const Library: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-rose-600/30 flex items-center justify-center text-rose-400 group-hover:scale-110 transition">
               <Heart className="w-6 h-6 fill-rose-400" />
             </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-black/40 text-rose-300 border border-rose-500/20 font-medium">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-black/40 text-rose-300 border border-rose-500/20 font-bold">
               {likedSongs.length} Songs
             </span>
           </div>
 
-          <h2 className="text-xl font-bold text-white group-hover:text-rose-300 transition">
+          <h2 className="text-xl font-black text-white group-hover:text-rose-300 transition">
             Liked Songs
           </h2>
           <p className="text-xs text-zinc-400 mt-1">
@@ -93,7 +94,7 @@ export const Library: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-indigo-950 flex items-center justify-center text-indigo-400">
               <Sliders className="w-6 h-6" />
             </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/20 font-mono">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/20 font-mono font-bold">
               {audioQuality}
             </span>
           </div>
@@ -144,7 +145,7 @@ export const Library: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Music2 className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-xl font-bold text-white tracking-tight">Your Playlists</h2>
+            <h2 className="text-xl font-black text-white tracking-tight">Your Playlists</h2>
           </div>
           <span className="text-xs text-zinc-500">{userPlaylists.length} playlists</span>
         </div>
@@ -163,13 +164,20 @@ export const Library: React.FC = () => {
               >
                 <div className="w-full aspect-square rounded-xl bg-gradient-to-tr from-indigo-900 to-violet-900 flex items-center justify-center text-white overflow-hidden shadow-md">
                   {pl.image ? (
-                    <img src={pl.image} alt={pl.name} className="w-full h-full object-cover" />
+                    <ImageWithFallback
+                      src={pl.image}
+                      alt={pl.name}
+                      fallbackTitle={pl.name}
+                      type="playlist"
+                      containerClassName="w-full h-full"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <Music2 className="w-10 h-10 text-white/60" />
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xs font-semibold text-white truncate group-hover:text-indigo-400">
+                  <h3 className="text-xs font-bold text-white truncate group-hover:text-indigo-400">
                     {pl.name}
                   </h3>
                   <p className="text-[11px] text-zinc-500 mt-0.5">{pl.songs.length} songs</p>
@@ -186,7 +194,7 @@ export const Library: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-indigo-400" />
-              <h2 className="text-xl font-bold text-white tracking-tight">Listening History</h2>
+              <h2 className="text-xl font-black text-white tracking-tight">Listening History</h2>
             </div>
             <button
               onClick={clearRecentlyPlayed}
@@ -210,7 +218,7 @@ export const Library: React.FC = () => {
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <Mic2 className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-xl font-bold text-white tracking-tight">Followed Artists</h2>
+            <h2 className="text-xl font-black text-white tracking-tight">Followed Artists</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {followedArtists.map(artistId => (

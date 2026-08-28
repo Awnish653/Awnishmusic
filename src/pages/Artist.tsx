@@ -11,6 +11,7 @@ import { ErrorState } from '../components/FeedbackStates';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
 import { formatCount } from '../utils/formatters';
+import { ImageWithFallback } from '../utils/image';
 
 export const Artist: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -81,30 +82,32 @@ export const Artist: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 space-y-10 max-w-7xl mx-auto pb-32 animate-fade-in">
       {/* Artist Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-950/50 via-zinc-900/80 to-zinc-950 border border-white/10 p-6 sm:p-10 shadow-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-950/60 via-zinc-900/90 to-zinc-950 border border-white/10 p-6 sm:p-10 shadow-2xl">
         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 sm:gap-8">
           {/* Circular Image */}
-          <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-full overflow-hidden bg-zinc-800 shadow-2xl ring-4 ring-white/10 shrink-0">
-            <img
+          <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-full overflow-hidden bg-zinc-800 shadow-2xl ring-4 ring-white/15 shrink-0">
+            <ImageWithFallback
               src={artist.image}
               alt={artist.name}
+              fallbackTitle={artist.name}
+              type="artist"
+              containerClassName="w-full h-full"
               className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
             />
           </div>
 
           {/* Meta */}
           <div className="flex flex-col space-y-3 text-center sm:text-left flex-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-semibold self-center sm:self-start">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-bold self-center sm:self-start border border-white/10">
               <Mic2 className="w-3.5 h-3.5" />
               <span>Verified Artist</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
               {artist.name}
             </h1>
 
-            <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-zinc-300">
+            <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-zinc-300 font-medium">
               {artist.followerCount && Number(artist.followerCount) > 0 && (
                 <span>{formatCount(artist.followerCount)} Followers</span>
               )}
@@ -118,7 +121,7 @@ export const Artist: React.FC = () => {
               <button
                 onClick={handlePlayAll}
                 disabled={topSongs.length === 0}
-                className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>Play Popular</span>
@@ -152,7 +155,7 @@ export const Artist: React.FC = () => {
       {/* Popular Tracks */}
       {topSongs.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white tracking-tight">Popular Songs</h2>
+          <h2 className="text-xl font-black text-white tracking-tight">Popular Songs</h2>
           <div className="space-y-2">
             {topSongs.map((song, i) => (
               <SongRow
@@ -171,7 +174,7 @@ export const Artist: React.FC = () => {
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <Disc3 className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-xl font-bold text-white tracking-tight">Albums & EPs</h2>
+            <h2 className="text-xl font-black text-white tracking-tight">Albums & EPs</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {topAlbums.map(album => (
@@ -184,7 +187,7 @@ export const Artist: React.FC = () => {
       {/* Singles */}
       {singles.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white tracking-tight">Singles</h2>
+          <h2 className="text-xl font-black text-white tracking-tight">Singles</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {singles.map(single => (
               <AlbumCard key={single.id} album={single} />

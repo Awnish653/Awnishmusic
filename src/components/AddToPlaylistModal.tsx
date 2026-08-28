@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Check, Music, X, FolderPlus } from 'lucide-react';
 import { useLibrary } from '../context/LibraryContext';
+import { ImageWithFallback } from '../utils/image';
 
 export const AddToPlaylistModal: React.FC = () => {
   const {
@@ -43,7 +44,7 @@ export const AddToPlaylistModal: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div>
-            <h3 className="text-base font-semibold text-white">Add to Playlist</h3>
+            <h3 className="text-base font-bold text-white">Add to Playlist</h3>
             <p className="text-xs text-zinc-400 truncate max-w-[280px]">
               {activeSongForModal.title} • {activeSongForModal.artist}
             </p>
@@ -80,7 +81,7 @@ export const AddToPlaylistModal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={!newPlaylistName.trim()}
-                  className="px-4 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 transition"
+                  className="px-4 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 transition"
                 >
                   Create & Add
                 </button>
@@ -95,14 +96,14 @@ export const AddToPlaylistModal: React.FC = () => {
                 <FolderPlus className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">Create New Playlist</p>
+                <p className="text-sm font-bold text-white">Create New Playlist</p>
                 <p className="text-xs text-zinc-400">Save this song into a new collection</p>
               </div>
             </button>
           )}
 
           <div className="pt-2">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider px-1 pb-2">Your Playlists</p>
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider px-1 pb-2">Your Playlists</p>
             {userPlaylists.length === 0 ? (
               <p className="text-xs text-zinc-500 py-4 text-center">No playlists created yet.</p>
             ) : (
@@ -121,19 +122,21 @@ export const AddToPlaylistModal: React.FC = () => {
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
-                          {pl.coverImage ? (
-                            <img
-                              src={pl.coverImage}
+                          {pl.coverImage || pl.image ? (
+                            <ImageWithFallback
+                              src={pl.coverImage || pl.image}
                               alt={pl.name}
+                              fallbackTitle={pl.name}
+                              type="playlist"
+                              containerClassName="w-full h-full"
                               className="w-full h-full object-cover"
-                              referrerPolicy="no-referrer"
                             />
                           ) : (
                             <Music className="w-5 h-5 text-zinc-500" />
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate text-white">{pl.name}</p>
+                          <p className="text-sm font-semibold truncate text-white">{pl.name}</p>
                           <p className="text-xs text-zinc-400">{pl.songs.length} tracks</p>
                         </div>
                       </div>
@@ -159,7 +162,7 @@ export const AddToPlaylistModal: React.FC = () => {
         <div className="p-3 border-t border-white/10 bg-zinc-950/60 flex justify-end">
           <button
             onClick={() => setActiveSongForModal(null)}
-            className="px-4 py-1.5 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition"
+            className="px-4 py-1.5 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition"
           >
             Done
           </button>
