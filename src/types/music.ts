@@ -36,11 +36,16 @@ export interface Song {
   releaseDate?: string;
   year?: string | number;
   language?: string;
+  genre?: string;
   playCount?: string | number;
   hasLyrics?: boolean;
   audioUrls: AudioUrl[];
   playableUrl: string;
   url?: string;
+  source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2';
+  rawId?: string | number;
+  streamEndpoint?: string;
+  downloadEndpoint?: string;
 }
 
 export interface Album {
@@ -51,6 +56,7 @@ export interface Album {
   year?: string | number;
   type?: string;
   language?: string;
+  genre?: string;
   songCount?: number;
   artists?: {
     primary?: ArtistMini[];
@@ -63,6 +69,8 @@ export interface Album {
   songs?: Song[];
   url?: string;
   explicitContent?: boolean;
+  source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2';
+  rawId?: string | number;
 }
 
 export interface Artist {
@@ -81,6 +89,8 @@ export interface Artist {
   singles?: Album[];
   similarArtists?: ArtistMini[];
   url?: string;
+  source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2';
+  rawId?: string | number;
 }
 
 export interface Playlist {
@@ -103,6 +113,8 @@ export interface Playlist {
   songs?: Song[];
   url?: string;
   explicitContent?: boolean;
+  source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2';
+  rawId?: string | number;
 }
 
 export interface SearchResults {
