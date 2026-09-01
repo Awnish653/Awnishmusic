@@ -33,7 +33,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         className={`font-serif-title ${currentSize} font-bold tracking-tight text-[#FAF8F5] group-hover:text-[#E5F939] transition-colors`}
         style={{ letterSpacing: '-0.02em' }}
       >
-        Melovia
+        awnishxmusic
       </span>
     </div>
   );

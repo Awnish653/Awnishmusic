@@ -365,16 +365,33 @@ export async function getArtistById(id: string, preferredQuality?: AudioQualityK
   try {
     const json = await fetchFromApi<any>(`/api/artists?id=${encodeURIComponent(id)}`);
     const raw = json?.data;
-    if (!raw) return null;
-    const artist = normalizeArtist(raw);
-    if (raw.topSongs && Array.isArray(raw.topSongs)) {
-      artist.topSongs = raw.topSongs.map((s: any) => normalizeSong(s, preferredQuality));
+    if (raw) {
+      const artist = normalizeArtist(raw);
+      if (raw.topSongs && Array.isArray(raw.topSongs) && raw.topSongs.length > 0) {
+        artist.topSongs = raw.topSongs.map((s: any) => normalizeSong(s, preferredQuality));
+      } else {
+        // Fetch top songs by searching the artist's name
+        const songs = await searchJioSongs(artist.name || 'Top Songs');
+        artist.topSongs = songs;
+      }
+      return artist;
     }
-    return artist;
   } catch (e) {
-    console.warn(`[JioSaavn] getArtistById(${id}) failed:`, e);
-    return null;
+    console.warn(`[JioSaavn] getArtistById(${id}) failed, searching fallback:`, e);
   }
+
+  // Fallback search artist by id/name if direct id fails
+  try {
+    const searchRes = await searchArtists(id);
+    if (searchRes.length > 0) {
+      const artist = searchRes[0];
+      const songs = await searchJioSongs(artist.name);
+      artist.topSongs = songs;
+      return artist;
+    }
+  } catch {}
+
+  return null;
 }
 
 /**
@@ -399,6 +416,75 @@ export async function getPlaylistById(id: string, preferredQuality?: AudioQualit
   } catch (e) {
     console.warn(`[JioSaavn] getPlaylistById(${id}) failed:`, e);
     return null;
+  }
+}
+
+/**
+ * Top Trending Artists to fetch dynamically from API with real API images
+ */
+const POPULAR_ARTIST_NAMES = [
+  'Tyler, The Creator',
+  '21 Savage',
+  '6ix9ine',
+  'Travis Scott',
+  'Arijit Singh',
+  'Diljit Dosanjh',
+  'Kumar Sanu',
+  'Kishore Kumar',
+  'The Weeknd',
+  'Shreya Ghoshal',
+  'Sonu Nigam',
+  'Udit Narayan',
+  'Alka Yagnik',
+  'Billie Eilish',
+  'Anuv Jain',
+  'Karan Aujla',
+  'Shubh',
+  'A.R. Rahman',
+  'KK',
+  'Lucky Ali'
+];
+
+/**
+ * Fetch real artists directly from the API preserving their official CDN photos
+ */
+export async function getPopularArtists(): Promise<Artist[]> {
+  try {
+    const searchPromises = POPULAR_ARTIST_NAMES.slice(0, 10).map(async (name) => {
+      try {
+        const results = await searchArtists(name);
+        return results[0] || null;
+      } catch {
+        return null;
+      }
+    });
+
+    const settled = await Promise.all(searchPromises);
+    const artists = settled.filter((a): a is Artist => a !== null && Boolean(a.name));
+
+    // Remove duplicates by name
+    const seen = new Set<string>();
+    const uniqueArtists: Artist[] = [];
+    for (const a of artists) {
+      const lower = a.name.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        uniqueArtists.push(a);
+      }
+    }
+
+    if (uniqueArtists.length > 0) {
+      return uniqueArtists;
+    }
+  } catch (e) {
+    console.warn('Error fetching popular artists from API:', e);
+  }
+
+  // If initial batch is empty, fallback search top artists
+  try {
+    return await searchArtists('Top Artists');
+  } catch {
+    return [];
   }
 }
 
@@ -432,6 +518,126 @@ export async function getTrendingAlbums(page: number = 1): Promise<Album[]> {
   return mergeAlbumLists(jioAlbums, flipAlbums);
 }
 
+export const CURATED_POPULAR_ARTISTS: Artist[] = [
+  // 90s & Evergreen Masters
+  {
+    id: '456269',
+    name: 'Kishore Kumar',
+    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80',
+    role: 'Legendary Voice'
+  },
+  {
+    id: '455124',
+    name: 'Kumar Sanu',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+    role: '90s King of Melody'
+  },
+  {
+    id: '455130',
+    name: 'Udit Narayan',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
+    role: 'Romantic Maestro'
+  },
+  {
+    id: '455125',
+    name: 'Alka Yagnik',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80',
+    role: 'Playback Queen'
+  },
+  {
+    id: '456268',
+    name: 'Lata Mangeshkar',
+    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&auto=format&fit=crop&q=80',
+    role: 'Nightingale of India'
+  },
+  {
+    id: '455127',
+    name: 'Sonu Nigam',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
+    role: 'Versatile Icon'
+  },
+  {
+    id: '456279',
+    name: 'A.R. Rahman',
+    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80',
+    role: 'Maestro Composer'
+  },
+  {
+    id: '455132',
+    name: 'KK',
+    image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=80',
+    role: 'Soulful Legend'
+  },
+  {
+    id: '455800',
+    name: 'Lucky Ali',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
+    role: 'Indie Nostalgia'
+  },
+
+  // Modern Superstars & Hitmakers
+  {
+    id: '459320',
+    name: 'Arijit Singh',
+    image: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=500&auto=format&fit=crop&q=80',
+    role: 'Heart of Bollywood'
+  },
+  {
+    id: '464932',
+    name: 'Diljit Dosanjh',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
+    role: 'Global Punjabi Star'
+  },
+  {
+    id: '8869877',
+    name: 'AP Dhillon',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
+    role: 'Brown Munde Wave'
+  },
+  {
+    id: '455134',
+    name: 'Shreya Ghoshal',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+    role: 'Melody Queen'
+  },
+  {
+    id: '5568923',
+    name: 'Anuv Jain',
+    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80',
+    role: 'Acoustic Indie'
+  },
+  {
+    id: '10474621',
+    name: 'Shubh',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
+    role: 'Punjabi Hip-Hop'
+  },
+  {
+    id: '5543209',
+    name: 'Karan Aujla',
+    image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80',
+    role: 'Geetan Di Machine'
+  },
+  {
+    id: '4925620',
+    name: 'Prateek Kuhad',
+    image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=80',
+    role: 'Indie Singer-Songwriter'
+  },
+  {
+    id: '5145252',
+    name: 'The Weeknd',
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80',
+    role: 'Global Pop Icon'
+  },
+  {
+    id: '4947901',
+    name: 'Billie Eilish',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80',
+    role: 'Grammy Winner'
+  }
+];
+
 /**
  * Get unified home feed data combining curated sections from both APIs
  */
@@ -443,6 +649,7 @@ export async function getUnifiedHomeData(): Promise<{
   curatedPlaylists: Playlist[];
   bollywoodHits: Song[];
   punjabiBeats: Song[];
+  ninetiesHits: Song[];
   chillLofi: Song[];
   genres: string[];
 }> {
@@ -451,29 +658,32 @@ export async function getUnifiedHomeData(): Promise<{
     bollyJioRes,
     punjabiJioRes,
     chillJioRes,
-    arijitJioRes,
+    ninetiesJioRes,
+    trendingHitsJioRes,
     albJioRes,
-    artJioRes,
-    plJioRes
+    plJioRes,
+    popArtistsRes
   ] = await Promise.allSettled([
     getFlipHomeFeed(),
     searchJioSongs('Bollywood Hits'),
     searchJioSongs('Punjabi Hits'),
     searchJioSongs('Chill Lo-Fi'),
-    searchJioSongs('Arijit Singh'),
-    searchAlbums('Bollywood'),
-    searchArtists('Arijit'),
-    searchPlaylists('Hits')
+    searchJioSongs('90s Bollywood Romantic Hits'),
+    searchJioSongs('Hindi Trending 2024'),
+    searchAlbums('Bollywood Hits'),
+    searchPlaylists('Top Bollywood'),
+    getPopularArtists()
   ]);
 
   const flipFeed = flipFeedRes.status === 'fulfilled' ? flipFeedRes.value : null;
   const bollyJio = bollyJioRes.status === 'fulfilled' ? bollyJioRes.value : [];
   const punjabiJio = punjabiJioRes.status === 'fulfilled' ? punjabiJioRes.value : [];
   const chillJio = chillJioRes.status === 'fulfilled' ? chillJioRes.value : [];
-  const arijitJio = arijitJioRes.status === 'fulfilled' ? arijitJioRes.value : [];
+  const ninetiesJio = ninetiesJioRes.status === 'fulfilled' ? ninetiesJioRes.value : [];
+  const trendingHitsJio = trendingHitsJioRes.status === 'fulfilled' ? trendingHitsJioRes.value : [];
   const albJio = albJioRes.status === 'fulfilled' ? albJioRes.value : [];
-  const artJio = artJioRes.status === 'fulfilled' ? artJioRes.value : [];
   const plJio = plJioRes.status === 'fulfilled' ? plJioRes.value : [];
+  const apiArtists = popArtistsRes.status === 'fulfilled' ? popArtistsRes.value : [];
 
   const flipTrending = flipFeed?.trendingSongs || [];
   const flipCharts = flipFeed?.topCharts || [];
@@ -481,16 +691,20 @@ export async function getUnifiedHomeData(): Promise<{
   const flipRecent = flipFeed?.recentlyAdded || [];
 
   // Merge trending from both
-  const trendingNow = mergeSongLists(bollyJio, flipTrending);
-  const weeklyCharts = mergeSongLists(flipCharts, arijitJio);
+  const trendingNow = mergeSongLists(trendingHitsJio.length > 0 ? trendingHitsJio : bollyJio, flipTrending);
+  const weeklyCharts = mergeSongLists(flipCharts, bollyJio);
   const trendingAlbums = mergeAlbumLists(albJio, flipAlbums);
   const bollywoodHits = bollyJio;
   const punjabiBeats = punjabiJio;
+  const ninetiesHits = ninetiesJio;
   const chillLofi = mergeSongLists(chillJio, flipRecent);
-  const popularArtists = artJio;
+  
+  // Real API artists with their official API images
+  const popularArtists = apiArtists.length > 0 ? apiArtists : CURATED_POPULAR_ARTISTS;
   const curatedPlaylists = plJio;
   const genres = flipFeed?.genres && flipFeed.genres.length > 0 ? flipFeed.genres : [
     'Bollywood',
+    '90s Nostalgia',
     'Punjabi',
     'Pop',
     'Lo-Fi',
@@ -510,6 +724,7 @@ export async function getUnifiedHomeData(): Promise<{
     curatedPlaylists,
     bollywoodHits,
     punjabiBeats,
+    ninetiesHits,
     chillLofi,
     genres
   };

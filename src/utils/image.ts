@@ -1,22 +1,4 @@
-const KNOWN_ARTIST_AVATARS: Record<string, string> = {
-  'tyler, the creator': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
-  'tyler the creator': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
-  '21 savage': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
-  '6ix9ine': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
-  'travis scott': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
-  'oxladaet': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80',
-  'the weeknd': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80',
-  'drake': 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=80',
-  'metro boomin': 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80',
-  'kendrick lamar': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80',
-  'billie eilish': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80',
-  'oneheart': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80',
-  'arijit singh': 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=500&auto=format&fit=crop&q=80',
-  'ap dhillon': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
-  'diljit dosanjh': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
-  'anuv jain': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80',
-  'shubh': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80'
-};
+export const USER_AVATAR_SRC = '/user-avatar.svg';
 
 /**
  * Generate a dynamic high-res SVG data URL with stylish gradient & initials/music glyph
@@ -26,13 +8,6 @@ export function generateFallbackCover(
   type: 'song' | 'artist' | 'album' | 'playlist' = 'song'
 ): string {
   const cleanTitle = (title || 'AwnishX').trim();
-  const lowerKey = cleanTitle.toLowerCase();
-
-  // If artist has a curated avatar match
-  if (type === 'artist' && KNOWN_ARTIST_AVATARS[lowerKey]) {
-    return KNOWN_ARTIST_AVATARS[lowerKey];
-  }
-
   const initials = cleanTitle
     .split(/\s+/)
     .slice(0, 2)
@@ -80,7 +55,7 @@ export function generateFallbackCover(
       </g>
       
       <!-- Brand watermark tag -->
-      <text x="20" y="380" font-family="'Playfair Display', Georgia, serif" font-style="italic" font-size="14" font-weight="600" fill="#ffffff" opacity="0.4" letter-spacing="1">MELOVIA</text>
+      <text x="20" y="380" font-family="'Playfair Display', Georgia, serif" font-style="italic" font-size="14" font-weight="600" fill="#ffffff" opacity="0.4" letter-spacing="1">AWNISHXMUSIC</text>
     </svg>
   `;
 
@@ -96,10 +71,6 @@ export function getSafeImageUrl(
   type: 'song' | 'artist' | 'album' | 'playlist' = 'song'
 ): string {
   if (!rawImage) {
-    const lowerKey = (fallbackTitle || '').trim().toLowerCase();
-    if (type === 'artist' && KNOWN_ARTIST_AVATARS[lowerKey]) {
-      return KNOWN_ARTIST_AVATARS[lowerKey];
-    }
     return generateFallbackCover(fallbackTitle, type);
   }
 
@@ -113,10 +84,6 @@ export function getSafeImageUrl(
     ) {
       // Replace low-res JioSaavn 50x50 or 150x150 in URL with 500x500 if possible
       return trimmed.replace(/50x50\.jpg/gi, '500x500.jpg').replace(/150x150\.jpg/gi, '500x500.jpg');
-    }
-    const lowerKey = (fallbackTitle || '').trim().toLowerCase();
-    if (type === 'artist' && KNOWN_ARTIST_AVATARS[lowerKey]) {
-      return KNOWN_ARTIST_AVATARS[lowerKey];
     }
     return generateFallbackCover(fallbackTitle, type);
   }

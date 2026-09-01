@@ -18,6 +18,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext';
 import { BrandLogo } from './BrandLogo';
 import { SearchSuggestionsDropdown } from './SearchSuggestionsDropdown';
+import { USER_AVATAR_SRC } from '../utils/image';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ export const Header: React.FC = () => {
   // Determine breadcrumb title based on path
   const getBreadcrumbTitle = () => {
     const path = location.pathname;
-    if (path === '/') return 'Browse';
+    if (path === '/') return 'awnishxmusic';
     if (path.startsWith('/search')) return 'Search & Explore';
     if (path.startsWith('/library')) return 'Your Library';
     if (path.startsWith('/liked')) return 'Favorite Songs';
@@ -209,10 +210,14 @@ export const Header: React.FC = () => {
           {/* User Profile Avatar */}
           <div
             onClick={() => navigate('/library')}
-            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#222226] to-[#484850] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#E8E5DF] cursor-pointer hover:scale-105 transition"
-            title="User Profile"
+            className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-[#E8E5DF] cursor-pointer hover:scale-105 transition bg-[#143454] shadow-2xs flex items-center justify-center"
+            title="User Profile (AwnishX)"
           >
-            <User className="w-4 h-4" />
+            <img
+              src={USER_AVATAR_SRC}
+              alt="User Avatar"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </header>
@@ -247,15 +252,13 @@ export const Header: React.FC = () => {
             {/* Profile Avatar */}
             <div
               onClick={() => navigate('/library')}
-              className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/20 cursor-pointer active:scale-95 transition shadow-xs bg-zinc-800"
+              className="w-8 h-8 rounded-full overflow-hidden ring-1.5 ring-white/30 cursor-pointer active:scale-95 transition shadow-xs bg-[#143454] flex items-center justify-center"
+              title="User Profile (AwnishX)"
             >
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80"
-                alt="User Profile"
+                src={USER_AVATAR_SRC}
+                alt="User Avatar"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLElement).style.display = 'none';
-                }}
               />
             </div>
           </div>

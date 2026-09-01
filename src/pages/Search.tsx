@@ -19,7 +19,9 @@ import {
   searchArtists,
   searchPlaylists,
   getTrendingSongs,
-  getTrendingAlbums
+  getTrendingAlbums,
+  getPopularArtists,
+  CURATED_POPULAR_ARTISTS
 } from '../services/api';
 import {
   Song,
@@ -102,9 +104,21 @@ export const Search: React.FC = () => {
     } else if (tabParam === 'albums') {
       loadFallbackAlbums();
     } else if (tabParam === 'artists') {
-      performSearch('Top Artists', 'artists');
+      loadFallbackArtists();
     }
   }, [queryParam, tabParam]);
+
+  const loadFallbackArtists = async () => {
+    setLoading(true);
+    try {
+      const artists = await getPopularArtists();
+      setArtistResults(artists.length > 0 ? artists : CURATED_POPULAR_ARTISTS);
+    } catch {
+      setArtistResults(CURATED_POPULAR_ARTISTS);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadFallbackSongs = async () => {
     setLoading(true);

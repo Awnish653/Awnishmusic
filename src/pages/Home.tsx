@@ -49,6 +49,7 @@ export const Home: React.FC = () => {
   const [curatedPlaylists, setCuratedPlaylists] = useState<Playlist[]>([]);
   const [bollywoodHits, setBollywoodHits] = useState<Song[]>([]);
   const [punjabiBeats, setPunjabiBeats] = useState<Song[]>([]);
+  const [ninetiesHits, setNinetiesHits] = useState<Song[]>([]);
   const [chillLofi, setChillLofi] = useState<Song[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
@@ -65,6 +66,7 @@ export const Home: React.FC = () => {
       setCuratedPlaylists(data.curatedPlaylists || []);
       setBollywoodHits(data.bollywoodHits || []);
       setPunjabiBeats(data.punjabiBeats || []);
+      setNinetiesHits((data as any).ninetiesHits || []);
       setChillLofi(data.chillLofi || []);
       setGenres(data.genres || []);
     } catch (err: any) {
@@ -113,26 +115,26 @@ export const Home: React.FC = () => {
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-36">
+    <div className="p-3 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-32">
       {/* ============================================================ */}
       {/* 1. FEATURED / CURATED PLAYLIST HERO CARD */}
       {/* ============================================================ */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {/* Desktop Container: Warm Sand Editorial Card */}
         {/* Mobile Container: Warm Deep Crimson/Amber Card */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#38190F] via-[#261109] to-[#140803] lg:from-[#EFE7DC] lg:via-[#E8DFD3] lg:to-[#E2D8CC] text-white lg:text-[#18181A] p-6 sm:p-8 lg:p-10 shadow-xl border border-white/10 lg:border-[#E0D7CB]">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#38190F] via-[#261109] to-[#140803] lg:from-[#EFE7DC] lg:via-[#E8DFD3] lg:to-[#E2D8CC] text-white lg:text-[#18181A] p-4 sm:p-7 lg:p-10 shadow-xl border border-white/10 lg:border-[#E0D7CB]">
           {/* Subtle warm glow accents */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 lg:bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-orange-600/10 lg:bg-orange-300/10 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-8">
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 lg:gap-8">
             {/* Left Column: Playlist Meta & Title */}
-            <div className="space-y-3 sm:space-y-4 max-w-lg w-full">
-              <span className="inline-block text-[11px] font-bold tracking-widest text-[#E5F939] lg:text-[#66666A] uppercase">
+            <div className="space-y-2 sm:space-y-3.5 max-w-lg w-full">
+              <span className="inline-block text-[10px] sm:text-[11px] font-bold tracking-widest text-[#E5F939] lg:text-[#66666A] uppercase">
                 CURATED PLAYLIST
               </span>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif-title font-black tracking-tight leading-none text-white lg:text-[#161618] uppercase">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-title font-black tracking-tight leading-none text-white lg:text-[#161618] uppercase">
                 {heroPlaylist.name || heroPlaylist.title || 'BLINDING LIGHT'}
               </h1>
 
@@ -141,14 +143,14 @@ export const Home: React.FC = () => {
               </p>
 
               {/* Meta badges: Like, Song Count, Duration */}
-              <div className="flex items-center gap-3 text-xs font-medium text-zinc-300 lg:text-[#66666A] pt-1">
+              <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] sm:text-xs font-medium text-zinc-300 lg:text-[#66666A] pt-0.5">
                 <button
                   onClick={() => {
                     if (heroPlaylist.songs?.[0]) toggleLike(heroPlaylist.songs[0]);
                   }}
                   className="flex items-center gap-1.5 hover:text-[#E5F939] lg:hover:text-black transition"
                 >
-                  <Heart className={`w-4 h-4 ${heroLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-300 lg:text-[#66666A]'}`} />
+                  <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${heroLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-300 lg:text-[#66666A]'}`} />
                   <span>83,012 Likes</span>
                 </button>
 
@@ -157,20 +159,20 @@ export const Home: React.FC = () => {
               </div>
 
               {/* Play Button Row */}
-              <div className="pt-2 flex items-center gap-3">
+              <div className="pt-1.5 flex items-center gap-3">
                 {/* Mobile Pill Button */}
                 <button
                   onClick={handleHeroPlay}
-                  className="flex lg:hidden items-center gap-2 px-6 py-2.5 rounded-full bg-[#E5F939] text-black font-extrabold text-xs shadow-xl active:scale-95 transition-all"
+                  className="flex lg:hidden items-center gap-2 px-5 py-2 rounded-full bg-[#E5F939] text-black font-extrabold text-xs shadow-xl active:scale-95 transition-all"
                 >
                   {isHeroPlaying ? (
                     <>
-                      <Pause className="w-4 h-4 fill-current" />
+                      <Pause className="w-3.5 h-3.5 fill-current" />
                       <span>Pause Now</span>
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                      <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                       <span>Play Now</span>
                     </>
                   )}
@@ -198,7 +200,7 @@ export const Home: React.FC = () => {
 
             {/* Right Column: Hero Artwork */}
             <div
-              className="relative w-44 h-44 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0 border border-white/10 lg:border-[#D8CFBF] group cursor-pointer"
+              className="relative w-36 h-36 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0 border border-white/10 lg:border-[#D8CFBF] group cursor-pointer"
               onClick={handleHeroPlay}
             >
               <ImageWithFallback
@@ -210,8 +212,8 @@ export const Home: React.FC = () => {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="w-14 h-14 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl font-bold">
-                  <Play className="w-6 h-6 fill-current ml-0.5" />
+                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl font-bold">
+                  <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
                 </div>
               </div>
             </div>
@@ -219,7 +221,7 @@ export const Home: React.FC = () => {
         </div>
 
         {/* Mobile 4 Carousel Dots */}
-        <div className="flex lg:hidden items-center justify-center gap-1.5 pt-1">
+        <div className="flex lg:hidden items-center justify-center gap-1.5 pt-0.5">
           <span className="w-4 h-1.5 rounded-full bg-[#E5F939] transition-all" />
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
@@ -230,66 +232,66 @@ export const Home: React.FC = () => {
       {/* ============================================================ */}
       {/* 2. MOBILE NOW PLAYING CARD (Exact match to Reference 2) */}
       {/* ============================================================ */}
-      <div className="block lg:hidden rounded-3xl bg-[#12151C] border border-white/5 p-4 sm:p-5 shadow-2xl select-none">
+      <div className="block lg:hidden rounded-2xl bg-[#12151C] border border-white/5 p-3.5 sm:p-4 shadow-2xl select-none">
         {/* Header: Equalizer + Title + Full Player button */}
-        <div className="flex items-center justify-between mb-3.5">
+        <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-            <div className="flex items-end gap-0.5 h-4">
-              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '70%', animationDuration: '0.6s' }} />
-              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.4s' }} />
-              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '50%', animationDuration: '0.8s' }} />
-              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '85%', animationDuration: '0.5s' }} />
+            <div className="flex items-end gap-0.5 h-3.5">
+              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '70%', animationDuration: '0.6s' }} />
+              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.4s' }} />
+              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '50%', animationDuration: '0.8s' }} />
+              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '85%', animationDuration: '0.5s' }} />
             </div>
-            <span className="text-sm font-serif-italic font-bold text-white tracking-tight">
+            <span className="text-xs font-serif-italic font-bold text-white tracking-tight">
               Now Playing
             </span>
           </div>
 
           <button
             onClick={() => setIsFullscreenOpen(true)}
-            className="text-xs font-semibold text-zinc-300 bg-[#1F2430] hover:bg-[#2A3140] px-3 py-1.5 rounded-full flex items-center gap-1.5 active:scale-95 transition"
+            className="text-[11px] font-semibold text-zinc-300 bg-[#1F2430] hover:bg-[#2A3140] px-2.5 py-1 rounded-full flex items-center gap-1 active:scale-95 transition"
           >
             <span>Full Player</span>
-            <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+            <Play className="w-2 h-2 fill-current ml-0.5" />
           </button>
         </div>
 
         {currentSong ? (
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
             {/* Song cover art */}
             <ImageWithFallback
               src={currentSong.image}
               alt={currentSong.title}
               fallbackTitle={currentSong.title}
               type="song"
-              containerClassName="w-14 h-14 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 shadow-md ring-1 ring-white/10"
+              containerClassName="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 shadow-md ring-1 ring-white/10"
               className="w-full h-full object-cover"
             />
 
             {/* Song title, artist & seekable progress line */}
-            <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="min-w-0 flex-1 space-y-1">
               <div className="pr-1">
-                <h3 className="text-sm font-bold text-white truncate leading-tight">
+                <h3 className="text-xs font-bold text-white truncate leading-tight">
                   {currentSong.title}
                 </h3>
-                <p className="text-xs font-serif-italic text-[#888890] truncate mt-0.5 font-medium">
+                <p className="text-[11px] font-serif-italic text-[#888890] truncate mt-0.5 font-medium">
                   {currentSong.artist}
                 </p>
               </div>
 
               {/* Seekable Progress Bar with circular white thumb */}
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <div className="relative w-full h-1 bg-zinc-800 rounded-full flex items-center cursor-pointer">
                   <div
                     className="h-full bg-[#E5F939] rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   />
                   <div
-                    className="absolute w-3 h-3 bg-white rounded-full shadow-md -translate-x-1/2 pointer-events-none"
+                    className="absolute w-2.5 h-2.5 bg-white rounded-full shadow-md -translate-x-1/2 pointer-events-none"
                     style={{ left: `${progressPercent}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#888890]">
+                <div className="flex items-center justify-between text-[9px] font-mono text-[#888890]">
                   <span>{formatDuration(currentTime)}</span>
                   <span>{formatDuration(duration)}</span>
                 </div>
@@ -300,19 +302,19 @@ export const Home: React.FC = () => {
             <button
               onClick={togglePlay}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-12 h-12 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl active:scale-95 transition shrink-0 font-bold"
+              className="w-10 h-10 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl active:scale-95 transition shrink-0 font-bold"
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5 fill-current" />
+                <Pause className="w-4 h-4 fill-current" />
               ) : (
-                <Play className="w-5 h-5 fill-current ml-0.5" />
+                <Play className="w-4 h-4 fill-current ml-0.5" />
               )}
             </button>
           </div>
         ) : (
           <div
             onClick={handleHeroPlay}
-            className="py-4 text-center text-xs text-[#888890] bg-[#171B24] rounded-2xl border border-dashed border-white/10 cursor-pointer hover:border-[#E5F939]/50 transition"
+            className="py-3 text-center text-xs text-[#888890] bg-[#171B24] rounded-xl border border-dashed border-white/10 cursor-pointer hover:border-[#E5F939]/50 transition"
           >
             Tap to play featured playlist
           </div>
@@ -347,8 +349,8 @@ export const Home: React.FC = () => {
               </div>
 
               {/* Horizontal scrollable circular artist cards */}
-              <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
-                {popularArtists.slice(0, 10).map((artist) => (
+              <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar scroll-smooth">
+                {popularArtists.map((artist) => (
                   <ArtistCard key={artist.id} artist={artist} />
                 ))}
               </div>
@@ -488,6 +490,33 @@ export const Home: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                 {bollywoodHits.slice(0, 6).map((song) => (
                   <SongCard key={song.id} song={song} queueContext={bollywoodHits} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ============================================================ */}
+          {/* 8B. 90s EVERGREENS & GOLDEN MELODIES */}
+          {/* ============================================================ */}
+          {ninetiesHits.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-amber-500 fill-amber-500/20" />
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
+                    90s Evergreens & Golden Melodies
+                  </h2>
+                </div>
+                <button
+                  onClick={() => navigate('/search?q=90s%20Bollywood%20Hits')}
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
+                >
+                  See all
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                {ninetiesHits.slice(0, 6).map((song) => (
+                  <SongCard key={song.id} song={song} queueContext={ninetiesHits} />
                 ))}
               </div>
             </section>
