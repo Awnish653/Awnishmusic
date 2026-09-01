@@ -1,5 +1,5 @@
-import React from 'react';
-import { Disc3, ListMusic, Music2, Play, Pause, Trash2, Heart, Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { Disc3, ListMusic, Music2, Play, Pause, Trash2, Heart, Download, Sparkles, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
@@ -8,20 +8,23 @@ import { ImageWithFallback } from '../utils/image';
 
 export const DesktopNowPlayingPanel: React.FC = () => {
   const navigate = useNavigate();
+  const [panelTab, setPanelTab] = useState<'queue' | 'suggestions'>('queue');
   const {
     currentSong,
     isPlaying,
     togglePlay,
     playSong,
     queue,
-    queueIndex,
+    currentIndex,
+    suggestions,
+    addToQueue,
     removeFromQueue,
     clearQueue,
     openDownloadModal
   } = usePlayer();
   const { isSongLiked, toggleLike } = useLibrary();
 
-  const upcomingSongs = queue.slice(queueIndex + 1);
+  const upcomingSongs = queue.slice(currentIndex + 1);
   const liked = currentSong ? isSongLiked(currentSong.id) : false;
 
   return (
@@ -120,76 +123,165 @@ export const DesktopNowPlayingPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Upcoming Queue Section */}
-        <div className="space-y-3 pt-4 border-t border-[#EFEFEF]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
-              <ListMusic className="w-4 h-4 text-[#777777]" />
-              <span>Upcoming Queue</span>
-              {upcomingSongs.length > 0 && (
-                <span className="text-[10px] bg-[#F5F5F5] text-[#777777] px-2 py-0.5 rounded-full font-mono font-bold">
-                  {upcomingSongs.length}
+        {/* Tab Switcher: Queue vs Suggestions */}
+        <div className="pt-2 border-t border-[#EFEFEF]">
+          <div className="flex items-center gap-1 p-1 bg-[#F5F5F5] rounded-xl mb-3">
+            <button
+              onClick={() => setPanelTab('queue')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+                panelTab === 'queue'
+                  ? 'bg-white text-[#1A1A1A] shadow-xs'
+                  : 'text-[#777777] hover:text-[#1A1A1A]'
+              }`}
+            >
+              <ListMusic className="w-3.5 h-3.5" />
+              <span>Queue ({upcomingSongs.length})</span>
+            </button>
+            <button
+              onClick={() => setPanelTab('suggestions')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+                panelTab === 'suggestions'
+                  ? 'bg-white text-[#1A1A1A] shadow-xs'
+                  : 'text-[#777777] hover:text-[#1A1A1A]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Suggestions ({suggestions.length})</span>
+            </button>
+          </div>
+
+          {/* QUEUE VIEW */}
+          {panelTab === 'queue' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
+                  Upcoming
                 </span>
-              )}
-            </div>
-            {queue.length > 0 && (
-              <button
-                onClick={clearQueue}
-                className="text-[11px] text-[#777777] hover:text-rose-500 font-medium transition"
-                title="Clear Queue"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            {upcomingSongs.length === 0 ? (
-              <div className="py-8 text-center text-xs text-[#999999] bg-[#FAFAFA] rounded-xl border border-dashed border-[#EFEFEF]">
-                Queue is empty. Songs you play will appear here.
+                {queue.length > 0 && (
+                  <button
+                    onClick={clearQueue}
+                    className="text-[11px] text-[#777777] hover:text-rose-500 font-medium transition"
+                    title="Clear Queue"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
-            ) : (
-              upcomingSongs.slice(0, 8).map((song, idx) => (
-                <div
-                  key={`${song.id}-${idx}`}
-                  onClick={() => playSong(song, queue)}
-                  className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-[#F5F5F5] transition cursor-pointer border border-transparent hover:border-[#EAEAEA]"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <ImageWithFallback
-                      src={song.image}
-                      alt={song.title}
-                      fallbackTitle={song.title}
-                      type="song"
-                      containerClassName="w-10 h-10 rounded-lg shrink-0 overflow-hidden bg-zinc-100 shadow-sm"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#1A1A1A] truncate group-hover:text-indigo-600">
-                        {song.title}
-                      </p>
-                      <p className="text-[11px] text-[#777777] truncate mt-0.5">
-                        {song.artist}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                    <span className="text-[11px] font-mono text-[#999999]">
-                      {formatDuration(song.duration)}
-                    </span>
-                    <button
-                      onClick={() => removeFromQueue(queueIndex + 1 + idx)}
-                      className="p-1 rounded-md text-[#AAAAAA] hover:text-rose-500 hover:bg-white transition opacity-0 group-hover:opacity-100"
-                      title="Remove from queue"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+              <div className="space-y-1.5">
+                {upcomingSongs.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-[#999999] bg-[#FAFAFA] rounded-xl border border-dashed border-[#EFEFEF]">
+                    Queue is empty. Songs you play will appear here.
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ) : (
+                  upcomingSongs.slice(0, 8).map((song, idx) => (
+                    <div
+                      key={`${song.id}-${idx}`}
+                      onClick={() => playSong(song, queue)}
+                      className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-[#F5F5F5] transition cursor-pointer border border-transparent hover:border-[#EAEAEA]"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <ImageWithFallback
+                          src={song.image}
+                          alt={song.title}
+                          fallbackTitle={song.title}
+                          type="song"
+                          containerClassName="w-10 h-10 rounded-lg shrink-0 overflow-hidden bg-zinc-100 shadow-sm"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-[#1A1A1A] truncate group-hover:text-indigo-600">
+                            {song.title}
+                          </p>
+                          <p className="text-[11px] text-[#777777] truncate mt-0.5">
+                            {song.artist}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        <span className="text-[11px] font-mono text-[#999999]">
+                          {formatDuration(song.duration)}
+                        </span>
+                        <button
+                          onClick={() => removeFromQueue(currentIndex + 1 + idx)}
+                          className="p-1 rounded-md text-[#AAAAAA] hover:text-rose-500 hover:bg-white transition opacity-0 group-hover:opacity-100"
+                          title="Remove from queue"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* SUGGESTIONS VIEW */}
+          {panelTab === 'suggestions' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
+                  Recommended For You
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                {suggestions.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-[#999999] bg-[#FAFAFA] rounded-xl border border-dashed border-[#EFEFEF]">
+                    No suggestions available for this track.
+                  </div>
+                ) : (
+                  suggestions.slice(0, 8).map((song) => (
+                    <div
+                      key={`panel-sug-${song.id}`}
+                      className="group flex items-center justify-between gap-2.5 p-2 rounded-xl hover:bg-[#F5F5F5] transition cursor-pointer border border-transparent hover:border-[#EAEAEA]"
+                    >
+                      <div
+                        onClick={() => playSong(song, suggestions)}
+                        className="flex items-center gap-2.5 min-w-0 flex-1"
+                      >
+                        <ImageWithFallback
+                          src={song.image}
+                          alt={song.title}
+                          fallbackTitle={song.title}
+                          type="song"
+                          containerClassName="w-10 h-10 rounded-lg shrink-0 overflow-hidden bg-zinc-100 shadow-sm"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-[#1A1A1A] truncate group-hover:text-indigo-600">
+                            {song.title}
+                          </p>
+                          <p className="text-[11px] text-[#777777] truncate mt-0.5">
+                            {song.artist}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => addToQueue(song)}
+                          className="p-1.5 rounded-lg bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#555555] transition"
+                          title="Add to queue"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => playSong(song, suggestions)}
+                          className="p-1.5 rounded-lg bg-[#1A1A1A] hover:bg-black text-white transition shadow-xs"
+                          title="Play now"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </aside>

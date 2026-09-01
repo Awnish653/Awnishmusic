@@ -9,7 +9,8 @@ import {
   Mic2,
   ListMusic,
   Flame,
-  Trash2
+  Trash2,
+  Sparkles
 } from 'lucide-react';
 import {
   search,
@@ -34,6 +35,7 @@ import { ArtistCard } from '../components/ArtistCard';
 import { PlaylistCard } from '../components/PlaylistCard';
 import { SectionSkeleton, RowSkeleton } from '../components/LoadingSkeleton';
 import { EmptyState, ErrorState } from '../components/FeedbackStates';
+import { SearchSuggestionsDropdown } from '../components/SearchSuggestionsDropdown';
 
 type TabType = 'all' | 'songs' | 'albums' | 'artists' | 'playlists';
 
@@ -48,6 +50,8 @@ export const Search: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>(tabParam);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [suggestedSongs, setSuggestedSongs] = useState<Song[]>([]);
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => storage.getRecentSearches());
 
@@ -59,6 +63,33 @@ export const Search: React.FC = () => {
   const [playlistResults, setPlaylistResults] = useState<Playlist[]>([]);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchInputContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchInputContainerRef.current &&
+        !searchInputContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch initial recommended suggestions when search page is loaded
+  useEffect(() => {
+    let cancelled = false;
+    getTrendingSongs().then((songs) => {
+      if (!cancelled && songs && songs.length > 0) {
+        setSuggestedSongs(songs.slice(0, 10));
+      }
+    }).catch(console.warn);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Sync state if URL query param changes
   useEffect(() => {
@@ -193,39 +224,52 @@ export const Search: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto pb-32">
-      {/* Search Input Bar */}
-      <form onSubmit={handleFormSubmit} className="relative max-w-3xl">
-        <div className="relative flex items-center">
-          <SearchIcon className="absolute left-4 w-5 h-5 text-zinc-400 lg:text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            value={inputQuery}
-            onChange={handleInputChange}
-            placeholder="Search songs, artists, albums or playlists..."
-            className="w-full pl-12 pr-28 py-3.5 sm:py-4 bg-[#151920] lg:bg-white border border-white/10 lg:border-gray-200 focus:border-[#F4FF3B] lg:focus:border-black rounded-2xl text-white lg:text-gray-900 placeholder-zinc-500 lg:placeholder-gray-400 text-sm sm:text-base outline-none shadow-xs transition"
-            autoFocus
-          />
+      {/* Search Input Bar with Auto-Suggestions */}
+      <div className="relative max-w-3xl" ref={searchInputContainerRef}>
+        <form onSubmit={handleFormSubmit} className="relative">
+          <div className="relative flex items-center">
+            <SearchIcon className="absolute left-4 w-5 h-5 text-zinc-400 lg:text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={inputQuery}
+              onFocus={() => setIsDropdownOpen(true)}
+              onChange={handleInputChange}
+              placeholder="Search songs, artists, albums or playlists..."
+              className="w-full pl-12 pr-28 py-3.5 sm:py-4 bg-[#151920] lg:bg-white border border-white/10 lg:border-gray-200 focus:border-[#F4FF3B] lg:focus:border-black rounded-2xl text-white lg:text-gray-900 placeholder-zinc-500 lg:placeholder-gray-400 text-sm sm:text-base outline-none shadow-xs transition"
+              autoFocus
+            />
 
-          <div className="absolute right-3 flex items-center gap-1.5">
-            {inputQuery && (
+            <div className="absolute right-3 flex items-center gap-1.5">
+              {inputQuery && (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  aria-label="Clear search input"
+                  className="p-1.5 rounded-full hover:bg-white/10 lg:hover:bg-gray-100 text-zinc-400 lg:text-gray-500 transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <button
-                type="button"
-                onClick={handleClear}
-                aria-label="Clear search input"
-                className="p-1.5 rounded-full hover:bg-white/10 lg:hover:bg-gray-100 text-zinc-400 lg:text-gray-500 transition"
+                type="submit"
+                className="px-3.5 py-1.5 rounded-xl bg-[#F4FF3B] lg:bg-[#1A1A1A] text-black lg:text-white text-xs font-bold shadow-xs transition hover:opacity-90"
               >
-                <X className="w-4 h-4" />
+                Search
               </button>
-            )}
-            <button
-              type="submit"
-              className="px-3.5 py-1.5 rounded-xl bg-[#F4FF3B] lg:bg-[#1A1A1A] text-black lg:text-white text-xs font-bold shadow-xs transition hover:opacity-90"
-            >
-              Search
-            </button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+
+        {/* Dropdown Suggestions */}
+        <SearchSuggestionsDropdown
+          query={inputQuery}
+          isOpen={isDropdownOpen}
+          onClose={() => setIsDropdownOpen(false)}
+          onSelectSuggestion={handleSelectRecent}
+          isDark={false}
+          className="lg:block hidden"
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -244,7 +288,7 @@ export const Search: React.FC = () => {
         ))}
       </div>
 
-      {/* When no query is typed yet: Show recent searches and trending tags */}
+      {/* When no query is typed yet: Show recent searches, trending tags and Suggested For You tracks */}
       {!queryParam.trim() && (activeTab === 'all') && (
         <div className="space-y-8 pt-4">
           {recentSearches.length > 0 && (
@@ -281,20 +325,44 @@ export const Search: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-zinc-300 lg:text-gray-800 text-sm font-bold">
               <Flame className="w-4 h-4 text-rose-500" />
-              <span>Trending Searches</span>
+              <span>Trending Suggestions</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {trendingTags.map(tag => (
                 <button
                   key={tag}
                   onClick={() => handleSelectRecent(tag)}
-                  className="px-4 py-2 rounded-xl bg-[#151920] lg:bg-white hover:bg-[#1B1F26] lg:hover:bg-gray-100 border border-white/5 lg:border-gray-200 text-xs text-zinc-300 lg:text-gray-700 transition"
+                  className="px-4 py-2 rounded-xl bg-[#151920] lg:bg-white hover:bg-[#1B1F26] lg:hover:bg-gray-100 border border-white/5 lg:border-gray-200 text-xs text-zinc-300 lg:text-gray-700 transition font-medium"
                 >
                   {tag}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Suggested Tracks For You Section */}
+          {suggestedSongs.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-zinc-300 lg:text-gray-900 text-base font-bold">
+                  <Sparkles className="w-4 h-4 text-[#F4FF3B] lg:text-black" />
+                  <span>Suggested Tracks For You</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {suggestedSongs.map((song, i) => (
+                  <SongRow
+                    key={`suggested-${song.id}-${i}`}
+                    song={song}
+                    index={i + 1}
+                    queueContext={suggestedSongs}
+                    showAlbum={true}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

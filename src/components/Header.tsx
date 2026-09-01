@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Search,
   Bell,
@@ -11,22 +11,52 @@ import {
   Sliders,
   ChevronLeft,
   ChevronRight,
-  ListMusic
+  ListMusic,
+  X
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext';
 import { BrandLogo } from './BrandLogo';
+import { SearchSuggestionsDropdown } from './SearchSuggestionsDropdown';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toggleShuffle, isShuffled, isQueueOpen, setIsQueueOpen, queue } = usePlayer();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'top' | 'releases' | 'feed' | 'shuffle'>('top');
+  
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+      if (
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(e.target as Node)
+      ) {
+        setIsMobileSearchOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setIsDropdownOpen(false);
+      setIsMobileSearchOpen(false);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -61,7 +91,7 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* DESKTOP TOP NAVIGATION BAR (> 1024px) */}
-      <header className="hidden lg:flex items-center justify-between gap-4 px-8 py-4 bg-white border-b border-[#E5E5E5] sticky top-0 z-20 select-none shadow-xs">
+      <header className="hidden lg:flex items-center justify-between gap-4 px-8 py-4 bg-white border-b border-[#E5E5E5] sticky top-0 z-40 select-none shadow-xs">
         {/* Left: Breadcrumbs & History */}
         <div className="flex items-center gap-4 min-w-0">
           <div className="flex items-center gap-1.5">
@@ -86,18 +116,44 @@ export const Header: React.FC = () => {
           </h1>
         </div>
 
-        {/* Center: Search Field */}
-        <div className="flex-1 max-w-md mx-4">
+        {/* Center: Search Field with Auto-Suggestions Dropdown */}
+        <div className="flex-1 max-w-md mx-4 relative" ref={searchContainerRef}>
           <form onSubmit={handleSearchSubmit} className="relative">
             <Search className="w-4 h-4 text-[#777777] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search songs, artists, albums, playlists..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-xs text-[#1A1A1A] placeholder-[#888888] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition shadow-inner"
+              onFocus={() => setIsDropdownOpen(true)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (!isDropdownOpen) setIsDropdownOpen(true);
+              }}
+              className="w-full pl-10 pr-8 py-2 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-xs text-[#1A1A1A] placeholder-[#888888] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition shadow-inner"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black transition"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </form>
+
+          {/* Instant Auto-Suggestions Dropdown */}
+          <SearchSuggestionsDropdown
+            query={searchQuery}
+            isOpen={isDropdownOpen}
+            onClose={() => setIsDropdownOpen(false)}
+            onSelectSuggestion={(term) => {
+              setSearchQuery(term);
+              setIsDropdownOpen(false);
+              navigate(`/search?q=${encodeURIComponent(term)}`);
+            }}
+            isDark={false}
+          />
         </div>
 
         {/* Right: Quick Navigation Tabs & Action Controls */}
@@ -159,26 +215,35 @@ export const Header: React.FC = () => {
 
       {/* MOBILE TOP AREA (< 1024px) */}
       <header className="lg:hidden sticky top-0 z-30 bg-[#080B10]/95 backdrop-blur-xl border-b border-white/5 pt-4 pb-1 px-4 select-none">
-        {/* Top bar: Large Heading + Notifications + Profile Avatar */}
-        <div className="flex items-center justify-between gap-3 mb-3.5">
+        {/* Top bar: Large Heading + Search Icon + Notifications + Profile Avatar */}
+        <div className="flex items-center justify-between gap-3 mb-2">
           <h1 className="text-2xl font-black text-white tracking-tight">
             {getBreadcrumbTitle()}
           </h1>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Quick Search Button */}
+            <button
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+              aria-label="Search"
+              className="p-1.5 text-zinc-300 hover:text-white flex items-center justify-center active:scale-95 transition"
+            >
+              <Search className="w-5 h-5 text-zinc-300" />
+            </button>
+
             {/* Notification Bell with red badge */}
             <button
               aria-label="Notifications"
-              className="p-1 text-zinc-300 hover:text-white flex items-center justify-center relative active:scale-95 transition"
+              className="p-1.5 text-zinc-300 hover:text-white flex items-center justify-center relative active:scale-95 transition"
             >
               <Bell className="w-5 h-5 text-zinc-300" />
-              <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-[#FF4D67] ring-2 ring-[#080B10]" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FF4D67] ring-2 ring-[#080B10]" />
             </button>
 
             {/* Profile Avatar */}
             <div
               onClick={() => navigate('/library')}
-              className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-white/20 cursor-pointer active:scale-95 transition shadow-sm bg-zinc-800"
+              className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/20 cursor-pointer active:scale-95 transition shadow-sm bg-zinc-800"
             >
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80"
@@ -191,6 +256,44 @@ export const Header: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Expandable Mobile Search Bar with Auto Suggestions */}
+        {isMobileSearchOpen && (
+          <div className="relative mb-3 animate-in fade-in slide-in-from-top-1" ref={mobileSearchRef}>
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search songs, artists, albums..."
+                value={searchQuery}
+                autoFocus
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-8 py-2.5 rounded-2xl bg-[#151920] border border-white/15 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-[#F4FF3B] transition"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </form>
+
+            <SearchSuggestionsDropdown
+              query={searchQuery}
+              isOpen={isMobileSearchOpen}
+              onClose={() => setIsMobileSearchOpen(false)}
+              onSelectSuggestion={(term) => {
+                setSearchQuery(term);
+                setIsMobileSearchOpen(false);
+                navigate(`/search?q=${encodeURIComponent(term)}`);
+              }}
+              isDark={true}
+            />
+          </div>
+        )}
 
         {/* Horizontal Category Navigation Tabs */}
         <div className="flex items-center gap-6 overflow-x-auto no-scrollbar pt-1">
