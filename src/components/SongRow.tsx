@@ -55,8 +55,8 @@ export const SongRow: React.FC<SongRowProps> = ({
       onClick={handlePlay}
       className={`group flex items-center justify-between gap-3 p-2 sm:px-4 sm:py-3 rounded-2xl transition-all duration-200 cursor-pointer select-none border ${
         isCurrent
-          ? 'bg-[#151920] lg:bg-[#F5F5F5] border-[#F4FF3B]/30 lg:border-[#1A1A1A]/30 text-white lg:text-[#1A1A1A] shadow-sm'
-          : 'bg-[#0E1117] lg:bg-white hover:bg-[#151920] lg:hover:bg-[#F9F9F9] border-white/5 lg:border-[#EFEFEF] text-white lg:text-[#1A1A1A]'
+          ? 'bg-[#151820] lg:bg-[#EFECE6] border-[#E5F939]/30 lg:border-[#18181A]/20 text-white lg:text-[#18181A] shadow-xs'
+          : 'bg-[#0D0E12] lg:bg-white hover:bg-[#151820] lg:hover:bg-[#FAF8F5] border-white/5 lg:border-[#E8E5DF] text-white lg:text-[#18181A]'
       }`}
     >
       {/* Left: Cover / Info */}
@@ -68,7 +68,7 @@ export const SongRow: React.FC<SongRowProps> = ({
             alt={song.title}
             fallbackTitle={song.title}
             type="song"
-            containerClassName="w-12 h-12 rounded-xl shrink-0 overflow-hidden bg-zinc-800 lg:bg-[#EFEFEF] shadow-sm ring-1 ring-white/5 lg:ring-black/5"
+            containerClassName="w-12 h-12 rounded-xl shrink-0 overflow-hidden bg-zinc-800 lg:bg-[#E8E5DF] shadow-2xs ring-1 ring-white/5 lg:ring-black/5"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         )}
@@ -78,13 +78,13 @@ export const SongRow: React.FC<SongRowProps> = ({
           <p
             className={`text-sm font-semibold truncate leading-tight transition ${
               isCurrent
-                ? 'text-[#F4FF3B] lg:text-[#1A1A1A] font-bold'
-                : 'text-white lg:text-[#1A1A1A]'
+                ? 'text-[#E5F939] lg:text-[#18181A] font-bold'
+                : 'text-white lg:text-[#18181A]'
             }`}
           >
             {song.title}
           </p>
-          <p className="text-xs text-[#8E8E93] lg:text-[#777777] truncate mt-0.5 font-normal">
+          <p className="text-xs font-serif-italic text-[#888890] lg:text-[#787679] truncate mt-0.5 font-normal">
             {song.artist}
           </p>
         </div>
@@ -92,7 +92,7 @@ export const SongRow: React.FC<SongRowProps> = ({
 
       {/* Center: Album Name (Desktop) */}
       {showAlbum && (
-        <div className="hidden lg:block w-1/4 text-xs text-[#777777] truncate hover:text-[#1A1A1A]">
+        <div className="hidden lg:block w-1/4 text-xs font-serif-italic text-[#787679] truncate hover:text-[#18181A]">
           {song.album?.name || '-'}
         </div>
       )}
@@ -100,7 +100,7 @@ export const SongRow: React.FC<SongRowProps> = ({
       {/* Right: Quick Add (+), Duration, Like, Menu */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0" onClick={e => e.stopPropagation()}>
         {/* Duration */}
-        <span className="text-xs font-mono text-[#8E8E93] lg:text-[#777777] w-9 text-right">
+        <span className="text-xs font-mono text-[#888890] lg:text-[#787679] w-9 text-right">
           {formatDuration(song.duration)}
         </span>
 
@@ -109,7 +109,7 @@ export const SongRow: React.FC<SongRowProps> = ({
           onClick={handleQuickAdd}
           title="Add to queue"
           aria-label="Add to queue"
-          className="p-1 rounded-full text-zinc-300 lg:text-[#777777] hover:text-[#F4FF3B] lg:hover:text-[#1A1A1A] hover:bg-white/10 lg:hover:bg-[#EAEAEA] transition"
+          className="p-1 rounded-full text-zinc-300 lg:text-[#787679] hover:text-[#E5F939] lg:hover:text-[#18181A] hover:bg-white/10 lg:hover:bg-[#EFECE6] transition"
         >
           <Plus className="w-5 h-5" />
         </button>
@@ -121,7 +121,7 @@ export const SongRow: React.FC<SongRowProps> = ({
           className={`hidden sm:flex p-1.5 rounded-full transition ${
             liked
               ? 'text-rose-500'
-              : 'text-[#A7A7A7] lg:text-[#777777] hover:text-rose-400 opacity-0 group-hover:opacity-100'
+              : 'text-[#888890] lg:text-[#787679] hover:text-rose-400 opacity-0 group-hover:opacity-100'
           }`}
         >
           <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500 opacity-100' : ''}`} />
@@ -132,7 +132,7 @@ export const SongRow: React.FC<SongRowProps> = ({
           <button
             onClick={() => setShowMenu(!showMenu)}
             aria-label="Options"
-            className="p-1.5 rounded-full text-[#A7A7A7] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] hover:bg-white/10 lg:hover:bg-[#EAEAEA] transition"
+            className="p-1.5 rounded-full text-[#888890] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] hover:bg-white/10 lg:hover:bg-[#EFECE6] transition"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -141,7 +141,7 @@ export const SongRow: React.FC<SongRowProps> = ({
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
               <div
-                className="absolute right-0 top-full mt-1 w-52 p-1.5 rounded-2xl bg-[#151920] lg:bg-white border border-white/10 lg:border-[#E5E5E5] shadow-2xl z-50 text-xs text-white lg:text-[#1A1A1A]"
+                className="absolute right-0 top-full mt-1 w-52 p-1.5 rounded-2xl bg-[#151820] lg:bg-white border border-white/10 lg:border-[#E8E5DF] shadow-2xl z-50 text-xs text-white lg:text-[#18181A]"
                 onClick={e => e.stopPropagation()}
               >
                 <button
@@ -149,9 +149,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                     handleDownload(e);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition font-semibold"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#FAF8F5] text-left transition font-semibold"
                 >
-                  <Download className="w-4 h-4 text-[#F4FF3B] lg:text-[#1A1A1A]" />
+                  <Download className="w-4 h-4 text-[#E5F939] lg:text-[#18181A]" />
                   Download Lossless Audio
                 </button>
                 <button
@@ -159,9 +159,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                     addToQueue(song);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#FAF8F5] text-left transition"
                 >
-                  <ListPlus className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
+                  <ListPlus className="w-4 h-4 text-zinc-400 lg:text-[#787679]" />
                   Add to Queue
                 </button>
                 <button
@@ -169,9 +169,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                     playNextInQueue(song);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#FAF8F5] text-left transition"
                 >
-                  <Radio className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
+                  <Radio className="w-4 h-4 text-zinc-400 lg:text-[#787679]" />
                   Play Next
                 </button>
                 <button
@@ -179,9 +179,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                     setActiveSongForModal(song);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#FAF8F5] text-left transition"
                 >
-                  <Plus className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
+                  <Plus className="w-4 h-4 text-zinc-400 lg:text-[#787679]" />
                   Add to Playlist
                 </button>
                 {song.album?.id && (
@@ -190,9 +190,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                       navigate(`/album/${song.album?.id}`);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#FAF8F5] text-left transition"
                   >
-                    <Disc3 className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
+                    <Disc3 className="w-4 h-4 text-zinc-400 lg:text-[#787679]" />
                     View Album
                   </button>
                 )}
@@ -202,7 +202,7 @@ export const SongRow: React.FC<SongRowProps> = ({
                       onRemove();
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-500 text-left transition border-t border-white/5 lg:border-[#E5E5E5] mt-1"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-500 text-left transition border-t border-white/5 lg:border-[#E8E5DF] mt-1"
                   >
                     Remove from this list
                   </button>

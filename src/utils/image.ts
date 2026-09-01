@@ -1,3 +1,23 @@
+const KNOWN_ARTIST_AVATARS: Record<string, string> = {
+  'tyler, the creator': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+  'tyler the creator': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+  '21 savage': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
+  '6ix9ine': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
+  'travis scott': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
+  'oxladaet': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80',
+  'the weeknd': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80',
+  'drake': 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=80',
+  'metro boomin': 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80',
+  'kendrick lamar': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80',
+  'billie eilish': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80',
+  'oneheart': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80',
+  'arijit singh': 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=500&auto=format&fit=crop&q=80',
+  'ap dhillon': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
+  'diljit dosanjh': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
+  'anuv jain': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80',
+  'shubh': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80'
+};
+
 /**
  * Generate a dynamic high-res SVG data URL with stylish gradient & initials/music glyph
  */
@@ -6,6 +26,13 @@ export function generateFallbackCover(
   type: 'song' | 'artist' | 'album' | 'playlist' = 'song'
 ): string {
   const cleanTitle = (title || 'AwnishX').trim();
+  const lowerKey = cleanTitle.toLowerCase();
+
+  // If artist has a curated avatar match
+  if (type === 'artist' && KNOWN_ARTIST_AVATARS[lowerKey]) {
+    return KNOWN_ARTIST_AVATARS[lowerKey];
+  }
+
   const initials = cleanTitle
     .split(/\s+/)
     .slice(0, 2)
@@ -20,9 +47,9 @@ export function generateFallbackCover(
   const hue1 = Math.abs(hash % 360);
   const hue2 = (hue1 + 65) % 360;
 
-  const color1 = `hsl(${hue1}, 75%, 28%)`;
-  const color2 = `hsl(${hue2}, 85%, 15%)`;
-  const accent = `hsl(${(hue1 + 180) % 360}, 90%, 65%)`;
+  const color1 = `hsl(${hue1}, 55%, 22%)`;
+  const color2 = `hsl(${hue2}, 65%, 12%)`;
+  const accent = `hsl(${(hue1 + 180) % 360}, 85%, 65%)`;
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
@@ -43,17 +70,17 @@ export function generateFallbackCover(
       <g opacity="0.85">
         ${
           type === 'artist'
-            ? `<circle cx="200" cy="170" r="70" stroke="${accent}" stroke-width="6" fill="none" opacity="0.6"/>
-               <text x="200" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">${initials}</text>`
-            : `<circle cx="200" cy="180" r="90" stroke="#ffffff" stroke-width="4" stroke-opacity="0.25" fill="none"/>
-               <circle cx="200" cy="180" r="40" stroke="${accent}" stroke-width="4" stroke-opacity="0.7" fill="none"/>
-               <circle cx="200" cy="180" r="14" fill="#ffffff"/>
-               <text x="200" y="325" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle" opacity="0.9">${initials}</text>`
+            ? `<circle cx="200" cy="180" r="75" stroke="${accent}" stroke-width="4" fill="none" opacity="0.6"/>
+               <text x="200" y="205" font-family="'Playfair Display', Georgia, serif" font-style="italic" font-size="64" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="1">${initials}</text>`
+            : `<circle cx="200" cy="180" r="90" stroke="#ffffff" stroke-width="3" stroke-opacity="0.2" fill="none"/>
+               <circle cx="200" cy="180" r="40" stroke="${accent}" stroke-width="3" stroke-opacity="0.6" fill="none"/>
+               <circle cx="200" cy="180" r="12" fill="#ffffff"/>
+               <text x="200" y="325" font-family="'Playfair Display', Georgia, serif" font-style="italic" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.9">${initials}</text>`
         }
       </g>
       
       <!-- Brand watermark tag -->
-      <text x="20" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#ffffff" opacity="0.5" letter-spacing="1">AWNISHX MUSIC</text>
+      <text x="20" y="380" font-family="'Playfair Display', Georgia, serif" font-style="italic" font-size="14" font-weight="600" fill="#ffffff" opacity="0.4" letter-spacing="1">MELOVIA</text>
     </svg>
   `;
 
@@ -69,6 +96,10 @@ export function getSafeImageUrl(
   type: 'song' | 'artist' | 'album' | 'playlist' = 'song'
 ): string {
   if (!rawImage) {
+    const lowerKey = (fallbackTitle || '').trim().toLowerCase();
+    if (type === 'artist' && KNOWN_ARTIST_AVATARS[lowerKey]) {
+      return KNOWN_ARTIST_AVATARS[lowerKey];
+    }
     return generateFallbackCover(fallbackTitle, type);
   }
 
@@ -82,6 +113,10 @@ export function getSafeImageUrl(
     ) {
       // Replace low-res JioSaavn 50x50 or 150x150 in URL with 500x500 if possible
       return trimmed.replace(/50x50\.jpg/gi, '500x500.jpg').replace(/150x150\.jpg/gi, '500x500.jpg');
+    }
+    const lowerKey = (fallbackTitle || '').trim().toLowerCase();
+    if (type === 'artist' && KNOWN_ARTIST_AVATARS[lowerKey]) {
+      return KNOWN_ARTIST_AVATARS[lowerKey];
     }
     return generateFallbackCover(fallbackTitle, type);
   }

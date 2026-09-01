@@ -98,38 +98,42 @@ export const Header: React.FC = () => {
             <button
               onClick={() => navigate(-1)}
               aria-label="Go back"
-              className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5]"
+              className="w-8 h-8 rounded-full bg-[#FAF8F5] hover:bg-[#EFECE6] text-[#18181A] flex items-center justify-center transition border border-[#E8E5DF]"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => navigate(1)}
               aria-label="Go forward"
-              className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5]"
+              className="w-8 h-8 rounded-full bg-[#FAF8F5] hover:bg-[#EFECE6] text-[#18181A] flex items-center justify-center transition border border-[#E8E5DF]"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <h1 className="text-xl font-black text-[#1A1A1A] tracking-tight truncate">
-            {getBreadcrumbTitle()}
-          </h1>
+          <div className="flex items-center gap-2 text-sm text-[#787679]">
+            <span className="cursor-pointer hover:text-black transition font-medium" onClick={() => navigate('/')}>Home</span>
+            <span>&gt;</span>
+            <h1 className="text-base font-bold font-serif-italic text-[#18181A] tracking-tight truncate">
+              {getBreadcrumbTitle()}
+            </h1>
+          </div>
         </div>
 
         {/* Center: Search Field with Auto-Suggestions Dropdown */}
         <div className="flex-1 max-w-md mx-4 relative" ref={searchContainerRef}>
           <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="w-4 h-4 text-[#777777] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#888890] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search songs, artists, albums, playlists..."
+              placeholder="Search songs, artists, albums..."
               value={searchQuery}
               onFocus={() => setIsDropdownOpen(true)}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 if (!isDropdownOpen) setIsDropdownOpen(true);
               }}
-              className="w-full pl-10 pr-8 py-2 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-xs text-[#1A1A1A] placeholder-[#888888] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition shadow-inner"
+              className="w-full pl-10 pr-8 py-2 rounded-full bg-[#FAF8F5] border border-[#E8E5DF] text-xs text-[#18181A] placeholder-[#888890] focus:outline-none focus:border-[#18181A] focus:bg-white transition shadow-2xs"
             />
             {searchQuery && (
               <button
@@ -160,35 +164,35 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => handleCategoryClick('releases')}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold text-[#555555] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition"
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#555558] hover:text-[#18181A] hover:bg-[#FAF8F5] transition"
           >
             New Releases
           </button>
           <button
             onClick={() => handleCategoryClick('feed')}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold text-[#555555] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition"
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#555558] hover:text-[#18181A] hover:bg-[#FAF8F5] transition"
           >
             New Feed
           </button>
           <button
             onClick={() => handleCategoryClick('shuffle')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
               isShuffled
-                ? 'bg-[#1A1A1A] text-white shadow-sm'
-                : 'text-[#555555] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]'
+                ? 'bg-[#18181A] text-white shadow-xs'
+                : 'text-[#555558] hover:text-[#18181A] hover:bg-[#FAF8F5]'
             }`}
           >
             <Shuffle className="w-3.5 h-3.5" />
             <span>Shuffle Play</span>
           </button>
 
-          <div className="h-5 w-px bg-[#E5E5E5] mx-1" />
+          <div className="h-5 w-px bg-[#E8E5DF] mx-1" />
 
           {/* Settings Icon */}
           <button
             onClick={() => navigate('/library?tab=settings')}
             aria-label="Settings"
-            className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#555555] hover:text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5]"
+            className="w-8 h-8 rounded-full bg-[#FAF8F5] hover:bg-[#EFECE6] text-[#555558] hover:text-[#18181A] flex items-center justify-center transition border border-[#E8E5DF]"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -196,17 +200,17 @@ export const Header: React.FC = () => {
           {/* Notification Icon */}
           <button
             aria-label="Notifications"
-            className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#555555] hover:text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5] relative"
+            className="w-8 h-8 rounded-full bg-[#FAF8F5] hover:bg-[#EFECE6] text-[#555558] hover:text-[#18181A] flex items-center justify-center transition border border-[#E8E5DF] relative"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F4FF3B] border-2 border-white ring-1 ring-black/20" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#E5F939] border-2 border-white ring-1 ring-black/20" />
           </button>
 
           {/* User Profile Avatar */}
           <div
             onClick={() => navigate('/library')}
-            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#2D2B2C] to-[#555354] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#E5E5E5] cursor-pointer hover:scale-105 transition"
-            title="Awnish Music Account"
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#222226] to-[#484850] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#E8E5DF] cursor-pointer hover:scale-105 transition"
+            title="User Profile"
           >
             <User className="w-4 h-4" />
           </div>
@@ -214,10 +218,10 @@ export const Header: React.FC = () => {
       </header>
 
       {/* MOBILE TOP AREA (< 1024px) */}
-      <header className="lg:hidden sticky top-0 z-30 bg-[#080B10]/95 backdrop-blur-xl border-b border-white/5 pt-4 pb-1 px-4 select-none">
+      <header className="lg:hidden sticky top-0 z-30 bg-[#0D0E12]/95 backdrop-blur-xl border-b border-white/5 pt-4 pb-1 px-4 select-none">
         {/* Top bar: Large Heading + Search Icon + Notifications + Profile Avatar */}
         <div className="flex items-center justify-between gap-3 mb-2">
-          <h1 className="text-2xl font-black text-white tracking-tight">
+          <h1 className="text-2xl font-serif-italic font-bold text-white tracking-tight">
             {getBreadcrumbTitle()}
           </h1>
 
@@ -231,19 +235,19 @@ export const Header: React.FC = () => {
               <Search className="w-5 h-5 text-zinc-300" />
             </button>
 
-            {/* Notification Bell with red badge */}
+            {/* Notification Bell with badge */}
             <button
               aria-label="Notifications"
               className="p-1.5 text-zinc-300 hover:text-white flex items-center justify-center relative active:scale-95 transition"
             >
               <Bell className="w-5 h-5 text-zinc-300" />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FF4D67] ring-2 ring-[#080B10]" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#E5F939] ring-2 ring-[#0D0E12]" />
             </button>
 
             {/* Profile Avatar */}
             <div
               onClick={() => navigate('/library')}
-              className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/20 cursor-pointer active:scale-95 transition shadow-sm bg-zinc-800"
+              className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/20 cursor-pointer active:scale-95 transition shadow-xs bg-zinc-800"
             >
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80"
@@ -268,7 +272,7 @@ export const Header: React.FC = () => {
                 value={searchQuery}
                 autoFocus
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-8 py-2.5 rounded-2xl bg-[#151920] border border-white/15 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-[#F4FF3B] transition"
+                className="w-full pl-10 pr-8 py-2.5 rounded-2xl bg-[#151820] border border-white/15 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-[#E5F939] transition"
               />
               {searchQuery && (
                 <button
@@ -309,12 +313,12 @@ export const Header: React.FC = () => {
                 key={tab.id}
                 onClick={() => handleCategoryClick(tab.id as any)}
                 className={`relative pb-2.5 text-xs font-semibold tracking-wide whitespace-nowrap transition-colors ${
-                  isSelected ? 'text-[#F4FF3B] font-bold' : 'text-[#8E8E93] hover:text-zinc-300'
+                  isSelected ? 'text-[#E5F939] font-bold' : 'text-[#888890] hover:text-zinc-300'
                 }`}
               >
                 <span>{tab.label}</span>
                 {isSelected && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#F4FF3B] rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#E5F939] rounded-full" />
                 )}
               </button>
             );

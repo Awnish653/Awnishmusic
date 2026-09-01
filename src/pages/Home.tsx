@@ -118,35 +118,37 @@ export const Home: React.FC = () => {
       {/* 1. FEATURED / CURATED PLAYLIST HERO CARD */}
       {/* ============================================================ */}
       <div className="space-y-3">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#4A1E0D] via-[#2F1308] to-[#1C0A04] lg:from-[#2A282A] lg:via-[#353335] lg:to-[#222022] text-white p-5 sm:p-7 lg:p-10 shadow-2xl border border-white/10 lg:border-none">
-          {/* Subtle amber lighting glow */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-orange-600/10 rounded-full blur-2xl pointer-events-none" />
+        {/* Desktop Container: Warm Sand Editorial Card */}
+        {/* Mobile Container: Warm Deep Crimson/Amber Card */}
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#38190F] via-[#261109] to-[#140803] lg:from-[#EFE7DC] lg:via-[#E8DFD3] lg:to-[#E2D8CC] text-white lg:text-[#18181A] p-6 sm:p-8 lg:p-10 shadow-xl border border-white/10 lg:border-[#E0D7CB]">
+          {/* Subtle warm glow accents */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 lg:bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-orange-600/10 lg:bg-orange-300/10 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6">
-            {/* Left Column: Playlist Meta */}
-            <div className="space-y-2.5 sm:space-y-3.5 max-w-lg w-full">
-              <span className="inline-block text-[11px] font-extrabold tracking-wider text-white/90 uppercase">
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-8">
+            {/* Left Column: Playlist Meta & Title */}
+            <div className="space-y-3 sm:space-y-4 max-w-lg w-full">
+              <span className="inline-block text-[11px] font-bold tracking-widest text-[#E5F939] lg:text-[#66666A] uppercase">
                 CURATED PLAYLIST
               </span>
 
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-none text-white uppercase">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif-title font-black tracking-tight leading-none text-white lg:text-[#161618] uppercase">
                 {heroPlaylist.name || heroPlaylist.title || 'BLINDING LIGHT'}
               </h1>
 
-              <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 leading-relaxed font-normal">
+              <p className="text-xs sm:text-sm font-serif-italic text-zinc-300 lg:text-[#484649] line-clamp-2 leading-relaxed font-normal">
                 {(heroPlaylist as any).subtitle || heroPlaylist.artist || 'Enjoy vivid emotions with this stunning music album. Each track is a story.'}
               </p>
 
               {/* Meta badges: Like, Song Count, Duration */}
-              <div className="flex items-center gap-3 text-xs font-semibold text-zinc-300 pt-1">
+              <div className="flex items-center gap-3 text-xs font-medium text-zinc-300 lg:text-[#66666A] pt-1">
                 <button
                   onClick={() => {
                     if (heroPlaylist.songs?.[0]) toggleLike(heroPlaylist.songs[0]);
                   }}
-                  className="flex items-center gap-1.5 hover:text-[#F4FF3B] transition"
+                  className="flex items-center gap-1.5 hover:text-[#E5F939] lg:hover:text-black transition"
                 >
-                  <Heart className={`w-4 h-4 ${heroLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-300'}`} />
+                  <Heart className={`w-4 h-4 ${heroLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-300 lg:text-[#66666A]'}`} />
                   <span>83,012 Likes</span>
                 </button>
 
@@ -154,20 +156,39 @@ export const Home: React.FC = () => {
                 <span>{heroPlaylist.songCount || heroPlaylist.songs?.length || 18} Songs, 39 min 43 sec</span>
               </div>
 
-              {/* Play Button */}
-              <div className="pt-2">
+              {/* Play Button Row */}
+              <div className="pt-2 flex items-center gap-3">
+                {/* Mobile Pill Button */}
                 <button
                   onClick={handleHeroPlay}
-                  className="flex items-center gap-2.5 px-6 py-2.5 sm:py-3 rounded-full bg-[#F4FF3B] hover:bg-yellow-300 text-black font-extrabold text-xs sm:text-sm shadow-xl hover:scale-105 active:scale-95 transition-all"
+                  className="flex lg:hidden items-center gap-2 px-6 py-2.5 rounded-full bg-[#E5F939] text-black font-extrabold text-xs shadow-xl active:scale-95 transition-all"
                 >
                   {isHeroPlaying ? (
                     <>
                       <Pause className="w-4 h-4 fill-current" />
-                      <span>Pause Stream</span>
+                      <span>Pause Now</span>
                     </>
                   ) : (
                     <>
                       <Play className="w-4 h-4 fill-current ml-0.5" />
+                      <span>Play Now</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Desktop Circular / Pill Play Button */}
+                <button
+                  onClick={handleHeroPlay}
+                  className="hidden lg:flex items-center gap-3 px-6 py-3 rounded-full bg-[#18181A] hover:bg-black text-white hover:text-[#E5F939] font-bold text-xs shadow-xl hover:scale-105 active:scale-95 transition-all group"
+                >
+                  {isHeroPlaying ? (
+                    <>
+                      <Pause className="w-4 h-4 fill-current" />
+                      <span>Pause Playlist</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-current ml-0.5 text-[#E5F939]" />
                       <span>Play Playlist</span>
                     </>
                   )}
@@ -177,7 +198,7 @@ export const Home: React.FC = () => {
 
             {/* Right Column: Hero Artwork */}
             <div
-              className="relative w-40 h-40 sm:w-52 sm:h-52 lg:w-60 lg:h-60 rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0 border border-white/10 group cursor-pointer"
+              className="relative w-44 h-44 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0 border border-white/10 lg:border-[#D8CFBF] group cursor-pointer"
               onClick={handleHeroPlay}
             >
               <ImageWithFallback
@@ -189,7 +210,7 @@ export const Home: React.FC = () => {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="w-13 h-13 rounded-full bg-[#F4FF3B] text-black flex items-center justify-center shadow-xl">
+                <div className="w-14 h-14 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl font-bold">
                   <Play className="w-6 h-6 fill-current ml-0.5" />
                 </div>
               </div>
@@ -197,9 +218,10 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile 3 Carousel Dots */}
+        {/* Mobile 4 Carousel Dots */}
         <div className="flex lg:hidden items-center justify-center gap-1.5 pt-1">
-          <span className="w-4 h-1.5 rounded-full bg-[#F4FF3B] transition-all" />
+          <span className="w-4 h-1.5 rounded-full bg-[#E5F939] transition-all" />
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
         </div>
@@ -213,12 +235,12 @@ export const Home: React.FC = () => {
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
             <div className="flex items-end gap-0.5 h-4">
-              <span className="w-1 bg-[#F4FF3B] rounded-full animate-bounce" style={{ height: '70%', animationDuration: '0.6s' }} />
-              <span className="w-1 bg-[#F4FF3B] rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.4s' }} />
-              <span className="w-1 bg-[#F4FF3B] rounded-full animate-bounce" style={{ height: '50%', animationDuration: '0.8s' }} />
-              <span className="w-1 bg-[#F4FF3B] rounded-full animate-bounce" style={{ height: '85%', animationDuration: '0.5s' }} />
+              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '70%', animationDuration: '0.6s' }} />
+              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.4s' }} />
+              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '50%', animationDuration: '0.8s' }} />
+              <span className="w-1 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '85%', animationDuration: '0.5s' }} />
             </div>
-            <span className="text-sm font-bold text-white tracking-tight">
+            <span className="text-sm font-serif-italic font-bold text-white tracking-tight">
               Now Playing
             </span>
           </div>
@@ -250,7 +272,7 @@ export const Home: React.FC = () => {
                 <h3 className="text-sm font-bold text-white truncate leading-tight">
                   {currentSong.title}
                 </h3>
-                <p className="text-xs text-[#8E8E93] truncate mt-0.5 font-medium">
+                <p className="text-xs font-serif-italic text-[#888890] truncate mt-0.5 font-medium">
                   {currentSong.artist}
                 </p>
               </div>
@@ -259,7 +281,7 @@ export const Home: React.FC = () => {
               <div className="space-y-1">
                 <div className="relative w-full h-1 bg-zinc-800 rounded-full flex items-center cursor-pointer">
                   <div
-                    className="h-full bg-[#F4FF3B] rounded-full"
+                    className="h-full bg-[#E5F939] rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   />
                   <div
@@ -267,7 +289,7 @@ export const Home: React.FC = () => {
                     style={{ left: `${progressPercent}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#8E8E93]">
+                <div className="flex items-center justify-between text-[10px] font-mono text-[#888890]">
                   <span>{formatDuration(currentTime)}</span>
                   <span>{formatDuration(duration)}</span>
                 </div>
@@ -278,7 +300,7 @@ export const Home: React.FC = () => {
             <button
               onClick={togglePlay}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-12 h-12 rounded-full bg-[#F4FF3B] text-black flex items-center justify-center shadow-xl active:scale-95 transition shrink-0 font-bold"
+              className="w-12 h-12 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl active:scale-95 transition shrink-0 font-bold"
             >
               {isPlaying ? (
                 <Pause className="w-5 h-5 fill-current" />
@@ -290,7 +312,7 @@ export const Home: React.FC = () => {
         ) : (
           <div
             onClick={handleHeroPlay}
-            className="py-4 text-center text-xs text-[#8E8E93] bg-[#171B24] rounded-2xl border border-dashed border-white/10 cursor-pointer hover:border-[#F4FF3B]/50 transition"
+            className="py-4 text-center text-xs text-[#888890] bg-[#171B24] rounded-2xl border border-dashed border-white/10 cursor-pointer hover:border-[#E5F939]/50 transition"
           >
             Tap to play featured playlist
           </div>
@@ -313,12 +335,12 @@ export const Home: React.FC = () => {
           {popularArtists.length > 0 && (
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                   Popular artists
                 </h2>
                 <button
                   onClick={() => navigate('/search?tab=artists')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -339,12 +361,12 @@ export const Home: React.FC = () => {
           {recentPool.length > 0 && (
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                   Recently played
                 </h2>
                 <button
                   onClick={() => navigate('/library?tab=history')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -367,17 +389,17 @@ export const Home: React.FC = () => {
           {/* 5. TRENDING NOW */}
           {/* ============================================================ */}
           {trendingNow.length > 0 && (
-            <section className="space-y-4 pt-4 border-t border-white/5 lg:border-[#E5E5E5]">
+            <section className="space-y-4 pt-4 border-t border-white/5 lg:border-[#E8E5DF]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Flame className="w-5 h-5 text-rose-500" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Trending Now
                   </h2>
                 </div>
                 <button
                   onClick={() => navigate('/search?q=Trending')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -398,13 +420,13 @@ export const Home: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-400" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Top Charts & Weekly Hits
                   </h2>
                 </div>
                 <button
                   onClick={() => navigate('/search?q=Charts')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -424,8 +446,8 @@ export const Home: React.FC = () => {
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-[#F4FF3B] lg:text-[#1A1A1A]" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <Globe className="w-5 h-5 text-[#E5F939] lg:text-[#18181A]" />
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Explore Genres
                   </h2>
                 </div>
@@ -435,7 +457,7 @@ export const Home: React.FC = () => {
                   <button
                     key={genre}
                     onClick={() => navigate(`/search?q=${encodeURIComponent(genre)}`)}
-                    className="px-4 py-2.5 rounded-full bg-[#151920] lg:bg-white hover:bg-[#1B1F26] lg:hover:bg-[#F0F0F0] border border-white/10 lg:border-[#E5E5E5] text-xs font-bold text-white lg:text-[#1A1A1A] whitespace-nowrap transition-all shadow-xs hover:scale-105 active:scale-95"
+                    className="px-4 py-2.5 rounded-full bg-[#151820] lg:bg-white hover:bg-[#1B1F26] lg:hover:bg-[#EFECE6] border border-white/10 lg:border-[#E8E5DF] text-xs font-bold text-white lg:text-[#18181A] whitespace-nowrap transition-all shadow-2xs hover:scale-105 active:scale-95"
                   >
                     {genre.replace(/-/g, ' ').toUpperCase()}
                   </button>
@@ -452,13 +474,13 @@ export const Home: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Mic2 className="w-5 h-5 text-pink-500" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Bollywood Blockbusters
                   </h2>
                 </div>
                 <button
                   onClick={() => navigate('/search?q=Bollywood%20Hits')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -479,13 +501,13 @@ export const Home: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Disc3 className="w-5 h-5 text-violet-500" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Trending Albums
                   </h2>
                 </div>
                 <button
                   onClick={() => navigate('/search?q=Trending&tab=albums')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -506,13 +528,13 @@ export const Home: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Radio className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Punjabi Beats & Party
                   </h2>
                 </div>
                 <button
                   onClick={() => navigate('/search?q=Punjabi%20Hits')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
@@ -533,13 +555,13 @@ export const Home: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Music className="w-5 h-5 text-emerald-500" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-white lg:text-[#1A1A1A] tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-serif-italic font-bold text-white lg:text-[#18181A] tracking-tight">
                     Chill & Lo-Fi Relax
                   </h2>
                 </div>
                 <button
                   onClick={() => navigate('/search?q=Chill')}
-                  className="text-xs font-bold text-[#F4FF3B] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] transition"
+                  className="text-xs font-bold text-[#E5F939] lg:text-[#787679] hover:text-white lg:hover:text-[#18181A] transition"
                 >
                   See all
                 </button>
