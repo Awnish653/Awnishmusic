@@ -1,13 +1,39 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --desktop-bg: #F5F5F5;
+    --desktop-card: #FFFFFF;
+    --desktop-sidebar: #2D2B2C;
+    --desktop-text: #1A1A1A;
+    --desktop-secondary: #777777;
+    --desktop-border: #E5E5E5;
+
+    --mobile-bg: #080B10;
+    --mobile-card: #151920;
+    --mobile-card-sec: #1B1F26;
+    --mobile-text: #FFFFFF;
+    --mobile-secondary: #A7A7A7;
+    --accent-yellow: #F4FF3B;
+  }
+
   body {
-    @apply bg-zinc-950 text-zinc-100 antialiased selection:bg-indigo-600 selection:text-white;
+    background-color: #080B10;
+    color: #FFFFFF;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (min-width: 1024px) {
+    body {
+      background-color: #F5F5F5;
+      color: #1A1A1A;
+    }
   }
 }
 
-/* Custom subtle scrollbar */
+/* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -18,26 +44,28 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(120, 120, 120, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(120, 120, 120, 0.45);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Hide scrollbar for clean horizontal scrolls */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
 }
 
+.animate-pulse-gentle {
+  animation: pulse-gentle 3s ease-in-out infinite;
+}

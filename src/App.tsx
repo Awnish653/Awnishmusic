@@ -4,6 +4,7 @@ import { PlayerProvider } from './context/PlayerContext';
 import { LibraryProvider } from './context/LibraryContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { DesktopNowPlayingPanel } from './components/DesktopNowPlayingPanel';
 import { MobileNav } from './components/MobileNav';
 import { GlobalPlayer } from './components/GlobalPlayer';
 import { MiniPlayer } from './components/MiniPlayer';
@@ -28,15 +29,15 @@ const AppContent: React.FC = () => {
   const { downloadSongModal, closeDownloadModal } = usePlayer();
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-row overflow-x-hidden font-sans antialiased selection:bg-indigo-500 selection:text-white">
-      {/* Desktop Left Sidebar */}
+    <div className="min-h-screen bg-[#080B10] lg:bg-[#F5F5F5] text-white lg:text-[#1A1A1A] flex flex-row overflow-x-hidden font-sans antialiased selection:bg-[#F4FF3B] selection:text-black">
+      {/* Desktop Left Sidebar (Fixed on > 1024px) */}
       <Sidebar />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative">
+      {/* Center Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative bg-[#080B10] lg:bg-[#FFFFFF]">
         <Header />
 
-        <main className="flex-1">
+        <main className="flex-1 min-w-0">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
@@ -52,10 +53,19 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Persistent Audio Players & Overlays */}
+      {/* Desktop Right "Now Playing" + Queue Panel (Fixed on > 1280px / xl) */}
+      <DesktopNowPlayingPanel />
+
+      {/* Desktop Bottom Persistent Music Player */}
       <GlobalPlayer />
+
+      {/* Mobile Floating Mini Player */}
       <MiniPlayer />
+
+      {/* Mobile Fixed Bottom Navigation */}
       <MobileNav />
+
+      {/* Global Overlays & Modals */}
       <FullscreenPlayer />
       <QueueDrawer />
       <AddToPlaylistModal />

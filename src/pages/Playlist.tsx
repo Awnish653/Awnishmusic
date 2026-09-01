@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Shuffle, ListMusic, Clock, User, Heart } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Play, Shuffle, ListMusic, Clock, User } from 'lucide-react';
 import { getPlaylistById } from '../services/api';
 import { Playlist as PlaylistType } from '../types/music';
 import { SongRow } from '../components/SongRow';
@@ -12,7 +12,6 @@ import { ImageWithFallback } from '../utils/image';
 
 export const Playlist: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { playSong } = usePlayer();
 
   const [playlist, setPlaylist] = useState<PlaylistType | null>(null);
@@ -41,7 +40,7 @@ export const Playlist: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto pb-32">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto pb-32">
         <DetailHeroSkeleton />
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -54,7 +53,7 @@ export const Playlist: React.FC = () => {
 
   if (error || !playlist) {
     return (
-      <div className="p-4 sm:p-8 max-w-7xl mx-auto pb-32">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto pb-32">
         <ErrorState
           title="Playlist Unavailable"
           message={error || 'Playlist could not be found.'}
@@ -81,10 +80,10 @@ export const Playlist: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto pb-32 animate-fade-in">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto pb-32">
       {/* Hero Header */}
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-gradient-to-b from-violet-950/50 via-zinc-900/80 to-zinc-900/40 border border-white/10 shadow-2xl">
-        <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden bg-zinc-800 shadow-2xl shrink-0 ring-1 ring-white/15">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-[#151920] lg:bg-white border border-white/10 lg:border-gray-200/80 shadow-sm">
+        <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden bg-zinc-800 lg:bg-gray-100 shadow-md shrink-0 ring-1 ring-black/10">
           <ImageWithFallback
             src={playlist.image}
             alt={playlist.name}
@@ -96,25 +95,25 @@ export const Playlist: React.FC = () => {
         </div>
 
         <div className="flex flex-col space-y-3 text-center md:text-left flex-1 min-w-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-bold self-center md:self-start border border-white/10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-400/20 text-lime-400 lg:text-lime-700 text-xs font-bold self-center md:self-start border border-lime-400/30">
             <ListMusic className="w-3.5 h-3.5" />
             <span>Curated Playlist</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight break-words">
+          <h1 className="text-2xl sm:text-4xl font-black text-white lg:text-gray-900 tracking-tight break-words">
             {playlist.name}
           </h1>
 
           {playlist.description && (
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl">
+            <p className="text-xs sm:text-sm text-zinc-400 lg:text-gray-600 max-w-2xl">
               {playlist.description}
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-300 font-medium">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 lg:text-gray-600 font-medium">
             {playlist.username && (
-              <span className="flex items-center gap-1 font-bold text-white">
-                <User className="w-3 h-3 text-indigo-400" />
+              <span className="flex items-center gap-1 font-bold text-white lg:text-gray-900">
+                <User className="w-3.5 h-3.5 text-lime-400 lg:text-lime-700" />
                 {playlist.username}
               </span>
             )}
@@ -123,20 +122,20 @@ export const Playlist: React.FC = () => {
             {playlist.language && <span className="capitalize">• {playlist.language}</span>}
           </div>
 
-          <div className="flex items-center justify-center md:justify-start gap-3 pt-3">
+          <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
             <button
               onClick={handlePlayAll}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#F4FF3B] lg:bg-[#1A1A1A] text-black lg:text-white font-bold text-xs sm:text-sm shadow-md transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
-              <Play className="w-4 h-4 fill-white" />
+              <Play className="w-4 h-4 fill-current" />
               <span>Play All</span>
             </button>
 
             <button
               onClick={handleShuffle}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 px-5 py-3 rounded-full bg-zinc-800/90 hover:bg-zinc-700 text-white font-semibold text-sm border border-white/10 transition active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 lg:bg-gray-100 text-white lg:text-gray-900 font-semibold text-xs sm:text-sm border border-white/10 lg:border-gray-200 transition hover:bg-white/20 lg:hover:bg-gray-200 active:scale-95 disabled:opacity-50"
             >
               <Shuffle className="w-4 h-4" />
               <span>Shuffle</span>
@@ -147,19 +146,18 @@ export const Playlist: React.FC = () => {
 
       {/* Song list */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-zinc-400 lg:text-gray-400 uppercase tracking-wider border-b border-white/5 lg:border-gray-200">
           <div className="flex items-center gap-4">
             <span className="w-6 text-center">#</span>
             <span>Title</span>
           </div>
           <div className="flex items-center gap-8">
-            <span className="hidden md:inline">Album</span>
             <Clock className="w-4 h-4" />
           </div>
         </div>
 
         {songs.length === 0 ? (
-          <div className="p-8 text-center text-xs text-zinc-500">No tracks found in this playlist.</div>
+          <div className="p-8 text-center text-xs text-zinc-500 lg:text-gray-400">No tracks found in this playlist.</div>
         ) : (
           songs.map((song, i) => (
             <SongRow

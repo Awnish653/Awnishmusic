@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Disc3 } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Album } from '../types/music';
 import { usePlayer } from '../context/PlayerContext';
@@ -29,9 +29,9 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album }) => {
   return (
     <div
       onClick={handleClick}
-      className="group flex flex-col p-3 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/80 border border-white/5 hover:border-white/15 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-indigo-950/30"
+      className="group flex flex-col p-3 rounded-2xl bg-[#151920] lg:bg-white hover:bg-[#1B1F26] lg:hover:bg-gray-50 border border-white/5 lg:border-gray-200/80 transition-all duration-300 cursor-pointer shadow-xs hover:shadow-md"
     >
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-800 mb-3 shadow-md">
+      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-800 lg:bg-gray-100 mb-3 shadow-xs">
         <ImageWithFallback
           src={album.image}
           alt={album.name}
@@ -47,23 +47,23 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album }) => {
         <button
           onClick={handleQuickPlay}
           aria-label={`Play album ${album.name}`}
-          className="absolute right-3 bottom-3 w-11 h-11 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white flex items-center justify-center shadow-xl shadow-black/50 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-110 active:scale-95 transition-all duration-300"
+          className="absolute right-2.5 bottom-2.5 w-10 h-10 rounded-full bg-lime-400 text-gray-950 flex items-center justify-center shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-110 active:scale-95 transition-all duration-300"
         >
-          <Play className="w-5 h-5 fill-white ml-0.5" />
+          <Play className="w-4 h-4 fill-current ml-0.5" />
         </button>
 
         {album.year && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono font-medium text-zinc-300 border border-white/10">
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono font-medium text-zinc-200 border border-white/10">
             {album.year}
           </span>
         )}
       </div>
 
       <div className="flex flex-col min-w-0">
-        <h4 className="text-sm font-bold text-zinc-100 group-hover:text-white truncate" title={album.name}>
+        <h4 className="text-xs sm:text-sm font-bold text-white lg:text-gray-900 group-hover:text-lime-400 lg:group-hover:text-lime-700 truncate" title={album.name}>
           {album.name}
         </h4>
-        <p className="text-xs text-zinc-400 truncate mt-1" title={album.artist}>
+        <p className="text-[11px] text-zinc-400 lg:text-gray-500 truncate mt-0.5" title={album.artist}>
           {album.artist || 'Album'}
         </p>
       </div>

@@ -1,5 +1,18 @@
-import React from 'react';
-import { ChevronLeft, ChevronRight, Search, ListMusic, Zap, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Search,
+  Bell,
+  Settings,
+  Shuffle,
+  Sparkles,
+  Flame,
+  Radio,
+  User,
+  Sliders,
+  ChevronLeft,
+  ChevronRight,
+  ListMusic
+} from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext';
 import { BrandLogo } from './BrandLogo';
@@ -7,77 +20,204 @@ import { BrandLogo } from './BrandLogo';
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { queue, setIsQueueOpen, isQueueOpen, audioQuality } = usePlayer();
+  const { toggleShuffle, isShuffled, isQueueOpen, setIsQueueOpen, queue } = usePlayer();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'top' | 'releases' | 'feed' | 'shuffle'>('top');
 
-  const isSearchPage = location.pathname.startsWith('/search');
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  // Determine breadcrumb title based on path
+  const getBreadcrumbTitle = () => {
+    const path = location.pathname;
+    if (path === '/') return 'Browse';
+    if (path.startsWith('/search')) return 'Search & Explore';
+    if (path.startsWith('/library')) return 'Your Library';
+    if (path.startsWith('/liked')) return 'Favorite Songs';
+    if (path.startsWith('/album')) return 'Album Details';
+    if (path.startsWith('/artist')) return 'Artist Spotlight';
+    if (path.startsWith('/playlist')) return 'Playlist';
+    if (path.startsWith('/song')) return 'Track View';
+    return 'Music Stream';
+  };
+
+  const handleCategoryClick = (tab: 'top' | 'releases' | 'feed' | 'shuffle') => {
+    setActiveTab(tab);
+    if (tab === 'top') {
+      navigate('/search?q=Top%202024');
+    } else if (tab === 'releases') {
+      navigate('/search?q=New%20Releases');
+    } else if (tab === 'feed') {
+      navigate('/search?q=Trending');
+    } else if (tab === 'shuffle') {
+      toggleShuffle();
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 px-4 sm:px-8 py-3 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5">
-      {/* Mobile Brand Logo / Desktop History Navigation */}
-      <div className="flex items-center gap-3">
-        <div className="md:hidden">
-          <BrandLogo variant="badge" size="xs" onClick={() => navigate('/')} />
+    <>
+      {/* DESKTOP TOP NAVIGATION BAR (> 1024px) */}
+      <header className="hidden lg:flex items-center justify-between gap-4 px-8 py-4 bg-white border-b border-[#E5E5E5] sticky top-0 z-20 select-none shadow-xs">
+        {/* Left: Breadcrumbs & History */}
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+              className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5]"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => navigate(1)}
+              aria-label="Go forward"
+              className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5]"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <h1 className="text-xl font-black text-[#1A1A1A] tracking-tight truncate">
+            {getBreadcrumbTitle()}
+          </h1>
         </div>
 
-        <div className="hidden md:flex items-center gap-2">
+        {/* Center: Search Field */}
+        <div className="flex-1 max-w-md mx-4">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Search className="w-4 h-4 text-[#777777] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search songs, artists, albums, playlists..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-xs text-[#1A1A1A] placeholder-[#888888] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition shadow-inner"
+            />
+          </form>
+        </div>
+
+        {/* Right: Quick Navigation Tabs & Action Controls */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
-            className="w-8 h-8 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white flex items-center justify-center border border-white/5 transition"
+            onClick={() => handleCategoryClick('releases')}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold text-[#555555] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition"
           >
-            <ChevronLeft className="w-4 h-4" />
+            New Releases
           </button>
           <button
-            onClick={() => navigate(1)}
-            aria-label="Go forward"
-            className="w-8 h-8 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white flex items-center justify-center border border-white/5 transition"
+            onClick={() => handleCategoryClick('feed')}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold text-[#555555] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition"
           >
-            <ChevronRight className="w-4 h-4" />
+            New Feed
           </button>
-        </div>
-      </div>
+          <button
+            onClick={() => handleCategoryClick('shuffle')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+              isShuffled
+                ? 'bg-[#1A1A1A] text-white shadow-sm'
+                : 'text-[#555555] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]'
+            }`}
+          >
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>Shuffle Play</span>
+          </button>
 
-      {/* Center Search bar shortcut (if not on search page) */}
-      {!isSearchPage && (
-        <div
-          onClick={() => navigate('/search')}
-          className="flex-1 max-w-md mx-2 sm:mx-4 flex items-center gap-2.5 px-4 py-2 rounded-full bg-zinc-900/70 hover:bg-zinc-800/90 border border-white/10 hover:border-indigo-500/40 text-zinc-400 hover:text-zinc-200 cursor-pointer transition shadow-inner group"
-        >
-          <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-400 transition-colors" />
-          <span className="text-xs truncate font-medium">Search any song, artist, album, or playlist...</span>
-          <span className="hidden sm:inline-block ml-auto text-[10px] bg-zinc-800/90 text-zinc-400 px-1.5 py-0.5 rounded border border-white/5 font-mono">
-            ⌘K
-          </span>
-        </div>
-      )}
+          <div className="h-5 w-px bg-[#E5E5E5] mx-1" />
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-2.5">
-        {/* Playing Queue Trigger */}
-        <button
-          onClick={() => setIsQueueOpen(prev => !prev)}
-          aria-label="Toggle Playing Queue"
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ${
-            isQueueOpen
-              ? 'bg-gradient-to-r from-indigo-600 to-violet-600 border-indigo-400 text-white shadow-lg shadow-indigo-600/30'
-              : 'bg-zinc-900/80 hover:bg-zinc-800 border-white/10 text-zinc-300 hover:text-white'
-          }`}
-        >
-          <ListMusic className="w-3.5 h-3.5 text-indigo-400" />
-          <span className="hidden sm:inline">Queue</span>
-          {queue.length > 0 && (
-            <span className="px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-white/20 text-white">
-              {queue.length}
-            </span>
-          )}
-        </button>
+          {/* Settings Icon */}
+          <button
+            onClick={() => navigate('/library?tab=settings')}
+            aria-label="Settings"
+            className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#555555] hover:text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5]"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
 
-        {/* Live Lossless Audio Indicator Pill */}
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-950/50 border border-indigo-500/30 text-indigo-300 text-[11px] font-semibold tracking-wide">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span>Lossless Stream • {audioQuality}</span>
+          {/* Notification Icon */}
+          <button
+            aria-label="Notifications"
+            className="w-8 h-8 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#555555] hover:text-[#1A1A1A] flex items-center justify-center transition border border-[#E5E5E5] relative"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F4FF3B] border-2 border-white ring-1 ring-black/20" />
+          </button>
+
+          {/* User Profile Avatar */}
+          <div
+            onClick={() => navigate('/library')}
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#2D2B2C] to-[#555354] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#E5E5E5] cursor-pointer hover:scale-105 transition"
+            title="Awnish Music Account"
+          >
+            <User className="w-4 h-4" />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* MOBILE TOP AREA (< 1024px) */}
+      <header className="lg:hidden sticky top-0 z-30 bg-[#080B10]/95 backdrop-blur-xl border-b border-white/5 pt-4 pb-1 px-4 select-none">
+        {/* Top bar: Large Heading + Notifications + Profile Avatar */}
+        <div className="flex items-center justify-between gap-3 mb-3.5">
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            {getBreadcrumbTitle()}
+          </h1>
+
+          <div className="flex items-center gap-3">
+            {/* Notification Bell with red badge */}
+            <button
+              aria-label="Notifications"
+              className="p-1 text-zinc-300 hover:text-white flex items-center justify-center relative active:scale-95 transition"
+            >
+              <Bell className="w-5 h-5 text-zinc-300" />
+              <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-[#FF4D67] ring-2 ring-[#080B10]" />
+            </button>
+
+            {/* Profile Avatar */}
+            <div
+              onClick={() => navigate('/library')}
+              className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-white/20 cursor-pointer active:scale-95 transition shadow-sm bg-zinc-800"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80"
+                alt="User Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Horizontal Category Navigation Tabs */}
+        <div className="flex items-center gap-6 overflow-x-auto no-scrollbar pt-1">
+          {[
+            { id: 'top', label: 'Top 2023' },
+            { id: 'releases', label: 'New Releases' },
+            { id: 'feed', label: 'New Feed' },
+            { id: 'shuffle', label: 'Shuffle Play' }
+          ].map((tab) => {
+            const isSelected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleCategoryClick(tab.id as any)}
+                className={`relative pb-2.5 text-xs font-semibold tracking-wide whitespace-nowrap transition-colors ${
+                  isSelected ? 'text-[#F4FF3B] font-bold' : 'text-[#8E8E93] hover:text-zinc-300'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {isSelected && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#F4FF3B] rounded-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </header>
+    </>
   );
 };

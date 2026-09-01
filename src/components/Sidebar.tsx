@@ -1,26 +1,29 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Home,
-  Search,
-  Library,
+  Compass,
+  Music,
+  Disc3,
+  Users,
+  Radio,
+  Clock,
   Heart,
+  FolderSync,
   PlusCircle,
-  Music2,
-  Sliders,
-  Check,
+  ListMusic,
   Zap,
-  ListMusic
+  Check,
+  Headphones
 } from 'lucide-react';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
 import { AudioQualityKey } from '../types/music';
 import { BrandLogo } from './BrandLogo';
-import { ImageWithFallback } from '../utils/image';
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
-  const { userPlaylists, createPlaylist, recentlyPlayed } = useLibrary();
+  const location = useLocation();
+  const { userPlaylists, createPlaylist } = useLibrary();
   const { audioQuality, setAudioQuality } = usePlayer();
   const [showQualityMenu, setShowQualityMenu] = React.useState(false);
 
@@ -32,90 +35,131 @@ export const Sidebar: React.FC = () => {
 
   const qualities: AudioQualityKey[] = ['320kbps', '160kbps', '96kbps', '48kbps', '12kbps'];
 
+  const libraryItems = [
+    {
+      name: 'Browse',
+      to: '/',
+      icon: Compass,
+      exact: true,
+      isActiveMatch: (path: string, search: string) => path === '/'
+    },
+    {
+      name: 'Songs',
+      to: '/search?tab=songs',
+      icon: Music,
+      isActiveMatch: (path: string, search: string) => search.includes('tab=songs')
+    },
+    {
+      name: 'Albums',
+      to: '/search?tab=albums',
+      icon: Disc3,
+      isActiveMatch: (path: string, search: string) => path.startsWith('/album') || search.includes('tab=albums')
+    },
+    {
+      name: 'Artists',
+      to: '/search?tab=artists',
+      icon: Users,
+      isActiveMatch: (path: string, search: string) => path.startsWith('/artist') || search.includes('tab=artists')
+    },
+    {
+      name: 'Radio',
+      to: '/search?q=Radio',
+      icon: Radio,
+      isActiveMatch: (path: string, search: string) => search.includes('Radio')
+    }
+  ];
+
+  const myMusicItems = [
+    {
+      name: 'Recently Played',
+      to: '/library?tab=history',
+      icon: Clock,
+      isActiveMatch: (path: string, search: string) => path === '/library' && (search.includes('tab=history') || !search.includes('tab='))
+    },
+    {
+      name: 'Favorite Songs',
+      to: '/liked',
+      icon: Heart,
+      isActiveMatch: (path: string) => path === '/liked'
+    },
+    {
+      name: 'Local File',
+      to: '/library?tab=local',
+      icon: FolderSync,
+      isActiveMatch: (path: string, search: string) => path === '/library' && search.includes('tab=local')
+    }
+  ];
+
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-zinc-950/90 backdrop-blur-2xl border-r border-white/5 h-screen shrink-0 sticky top-0 z-30 select-none pb-28">
+    <aside className="hidden lg:flex flex-col w-60 bg-[#2D2B2C] text-white shrink-0 sticky top-0 h-screen z-30 select-none pb-28 border-r border-[#3C3A3B] shadow-2xl">
       {/* Brand Header */}
-      <div className="p-6 pb-5">
+      <div className="p-6 pb-4">
         <NavLink to="/" className="inline-block group">
           <BrandLogo variant="full" size="md" />
         </NavLink>
       </div>
 
-      {/* Main Navigation */}
-      <div className="px-3 py-1 space-y-1">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-              isActive
-                ? 'bg-gradient-to-r from-indigo-600/25 via-violet-600/20 to-transparent text-white border-l-2 border-indigo-500 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/60'
-            }`
-          }
-        >
-          <Home className="w-4 h-4 text-indigo-400" />
-          <span>Discover</span>
-        </NavLink>
-
-        <NavLink
-          to="/search"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-              isActive
-                ? 'bg-gradient-to-r from-indigo-600/25 via-violet-600/20 to-transparent text-white border-l-2 border-indigo-500 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/60'
-            }`
-          }
-        >
-          <Search className="w-4 h-4 text-cyan-400" />
-          <span>Search & Explore</span>
-        </NavLink>
-
-        <NavLink
-          to="/library"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-              isActive
-                ? 'bg-gradient-to-r from-indigo-600/25 via-violet-600/20 to-transparent text-white border-l-2 border-indigo-500 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/60'
-            }`
-          }
-        >
-          <Library className="w-4 h-4 text-violet-400" />
-          <span>Your Library</span>
-        </NavLink>
-
-        <NavLink
-          to="/liked"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-              isActive
-                ? 'bg-gradient-to-r from-rose-600/25 via-violet-600/20 to-transparent text-white border-l-2 border-rose-500 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/60'
-            }`
-          }
-        >
-          <div className="w-5 h-5 rounded-lg bg-gradient-to-tr from-rose-500 to-violet-600 flex items-center justify-center text-white shrink-0 shadow-sm shadow-rose-500/30">
-            <Heart className="w-3 h-3 fill-white" />
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6 no-scrollbar">
+        {/* Section 1: Library */}
+        <div className="space-y-1.5">
+          <div className="px-3 text-[11px] font-bold text-zinc-400 tracking-wider uppercase mb-2">
+            Library
           </div>
-          <span>Liked Songs</span>
-        </NavLink>
-      </div>
+          {libraryItems.map(item => {
+            const Icon = item.icon;
+            const active = item.isActiveMatch(location.pathname, location.search);
+            return (
+              <NavLink
+                key={item.name}
+                to={item.to}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all ${
+                  active
+                    ? 'bg-[#1E1D1E] text-[#F4FF3B] font-bold shadow-md'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${active ? 'text-[#F4FF3B]' : 'text-zinc-400'}`} />
+                <span>{item.name}</span>
+              </NavLink>
+            );
+          })}
+        </div>
 
-      <div className="my-3 mx-4 border-t border-white/5" />
+        {/* Section 2: My Music */}
+        <div className="space-y-1.5">
+          <div className="px-3 text-[11px] font-bold text-zinc-400 tracking-wider uppercase mb-2">
+            My Music
+          </div>
+          {myMusicItems.map(item => {
+            const Icon = item.icon;
+            const active = item.isActiveMatch(location.pathname, location.search);
+            return (
+              <NavLink
+                key={item.name}
+                to={item.to}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all ${
+                  active
+                    ? 'bg-[#1E1D1E] text-[#F4FF3B] font-bold shadow-md'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${active ? 'text-[#F4FF3B]' : 'text-zinc-400'}`} />
+                <span>{item.name}</span>
+              </NavLink>
+            );
+          })}
+        </div>
 
-      {/* Playlists & Recents Scrollable Area */}
-      <div className="flex-1 px-3 overflow-y-auto space-y-4 pr-2">
-        {/* Custom Playlists */}
-        <div>
-          <div className="flex items-center justify-between px-3 py-1 mb-1">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Playlists</span>
+        {/* Section 3: Playlists */}
+        <div className="space-y-1.5 pt-2 border-t border-white/5">
+          <div className="flex items-center justify-between px-3 text-[11px] font-bold text-zinc-400 tracking-wider uppercase mb-2">
+            <span>Playlists</span>
             <button
               onClick={handleCreatePlaylist}
-              className="text-zinc-400 hover:text-white transition p-1 hover:bg-zinc-900 rounded-lg"
-              title="Create New Playlist"
+              className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition"
+              title="Create Playlist"
             >
-              <PlusCircle className="w-4 h-4 text-indigo-400" />
+              <PlusCircle className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -123,10 +167,10 @@ export const Sidebar: React.FC = () => {
             {userPlaylists.length === 0 ? (
               <button
                 onClick={handleCreatePlaylist}
-                className="w-full text-left px-3 py-2 text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40 rounded-xl transition flex items-center gap-2"
+                className="w-full text-left px-3 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition flex items-center gap-2"
               >
-                <PlusCircle className="w-3.5 h-3.5 text-zinc-500" />
-                <span>Create first playlist</span>
+                <PlusCircle className="w-3.5 h-3.5 text-zinc-400" />
+                <span>New playlist</span>
               </button>
             ) : (
               userPlaylists.map(pl => (
@@ -134,72 +178,44 @@ export const Sidebar: React.FC = () => {
                   key={pl.id}
                   to={`/playlist/custom/${pl.id}`}
                   className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium truncate transition ${
+                    `flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium truncate transition ${
                       isActive
-                        ? 'text-indigo-400 bg-zinc-900 font-semibold'
-                        : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+                        ? 'text-[#F4FF3B] bg-[#1E1D1E] font-semibold'
+                        : 'text-zinc-300 hover:text-white hover:bg-white/5'
                     }`
                   }
                 >
-                  <ListMusic className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
+                  <ListMusic className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
                   <span className="truncate">{pl.name}</span>
                 </NavLink>
               ))
             )}
           </div>
         </div>
-
-        {/* Recently Played shortcuts */}
-        {recentlyPlayed.length > 0 && (
-          <div>
-            <div className="px-3 py-1 mb-1">
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Recent History</span>
-            </div>
-            <div className="space-y-0.5">
-              {recentlyPlayed.slice(0, 5).map(song => (
-                <div
-                  key={song.id}
-                  onClick={() => navigate(`/song/${song.id}`)}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition cursor-pointer group"
-                >
-                  <ImageWithFallback
-                    src={song.image}
-                    alt={song.title}
-                    fallbackTitle={song.title}
-                    type="song"
-                    containerClassName="w-5 h-5 rounded-md shrink-0"
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="truncate flex-1 group-hover:text-zinc-200">{song.title}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Footer / Audio Quality Settings */}
-      <div className="p-3 border-t border-white/5 bg-zinc-950/60">
+      {/* Audio Fidelity Controller */}
+      <div className="p-3 border-t border-[#3C3A3B] bg-[#242223]">
         <div className="relative">
           <button
             onClick={() => setShowQualityMenu(!showQualityMenu)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-900/60 hover:bg-zinc-800 border border-white/5 text-xs text-zinc-300 transition"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#1E1D1E] hover:bg-black/30 text-xs text-zinc-300 transition border border-white/5"
           >
             <div className="flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Bitrate: <strong className="text-white">{audioQuality}</strong></span>
+              <Headphones className="w-3.5 h-3.5 text-[#F4FF3B]" />
+              <span className="truncate">Bitrate: <strong className="text-white font-mono">{audioQuality}</strong></span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-950/80 text-indigo-300 font-mono border border-indigo-500/20">
-              Lossless
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-[#F4FF3B] font-mono">
+              Hi-Fi
             </span>
           </button>
 
           {showQualityMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowQualityMenu(false)} />
-              <div className="absolute left-0 bottom-full mb-2 w-full p-1.5 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl z-50 text-xs">
+              <div className="absolute left-0 bottom-full mb-2 w-full p-1.5 bg-[#1E1D1E] border border-white/10 rounded-2xl shadow-2xl z-50 text-xs">
                 <p className="text-[10px] font-semibold text-zinc-400 px-2 py-1 uppercase tracking-wider">
-                  Audio Fidelity
+                  Audio Quality
                 </p>
                 {qualities.map(q => (
                   <button
@@ -209,11 +225,11 @@ export const Sidebar: React.FC = () => {
                       setShowQualityMenu(false);
                     }}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition ${
-                      audioQuality === q ? 'bg-indigo-600/30 text-indigo-300 font-bold' : 'text-zinc-300 hover:bg-zinc-800'
+                      audioQuality === q ? 'bg-white/15 text-[#F4FF3B] font-bold' : 'text-zinc-300 hover:bg-white/5'
                     }`}
                   >
                     <span>{q}</span>
-                    {audioQuality === q && <Check className="w-3 h-3 text-indigo-400" />}
+                    {audioQuality === q && <Check className="w-3.5 h-3.5 text-[#F4FF3B]" />}
                   </button>
                 ))}
               </div>

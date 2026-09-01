@@ -16,7 +16,8 @@ import {
   Sliders,
   Check,
   Disc3,
-  Download
+  Download,
+  Headphones
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext';
@@ -83,15 +84,12 @@ export const GlobalPlayer: React.FC = () => {
   const qualities: AudioQualityKey[] = ['320kbps', '160kbps', '96kbps', '48kbps', '12kbps'];
 
   return (
-    <div className="hidden md:flex fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/10 z-50 px-6 items-center justify-between shadow-2xl">
-      {/* Background Subtle Gradient Glow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/20 via-transparent to-violet-950/20 pointer-events-none" />
-
+    <div className="hidden lg:flex fixed bottom-0 left-0 right-0 h-24 bg-white border-t border-[#E5E5E5] z-50 px-8 items-center justify-between shadow-2xl text-[#1A1A1A] select-none">
       {/* LEFT SECTION: Song Details & Like & Download */}
-      <div className="relative z-10 flex items-center gap-4 w-1/4 min-w-[240px]">
+      <div className="flex items-center gap-4 w-1/4 min-w-[240px]">
         <div
           onClick={() => navigate(`/song/${currentSong.id}`)}
-          className="relative w-14 h-14 rounded-2xl overflow-hidden bg-zinc-900 shrink-0 cursor-pointer group shadow-lg ring-1 ring-white/10"
+          className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#F0F0F0] shrink-0 cursor-pointer group shadow-sm border border-[#E5E5E5]"
         >
           <ImageWithFallback
             src={currentSong.image}
@@ -101,7 +99,7 @@ export const GlobalPlayer: React.FC = () => {
             containerClassName="w-full h-full"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Disc3 className="w-5 h-5 text-white animate-spin" style={{ animationDuration: '3s' }} />
           </div>
         </div>
@@ -109,7 +107,7 @@ export const GlobalPlayer: React.FC = () => {
         <div className="flex flex-col min-w-0 pr-1">
           <span
             onClick={() => navigate(`/song/${currentSong.id}`)}
-            className="text-sm font-bold text-white truncate hover:text-indigo-400 cursor-pointer transition-colors"
+            className="text-sm font-extrabold text-[#1A1A1A] truncate hover:underline cursor-pointer transition-colors"
             title={currentSong.title}
           >
             {currentSong.title}
@@ -120,7 +118,7 @@ export const GlobalPlayer: React.FC = () => {
                 navigate(`/artist/${currentSong.artists[0].id}`);
               }
             }}
-            className="text-xs text-zinc-400 truncate hover:text-zinc-200 cursor-pointer mt-0.5"
+            className="text-xs text-[#777777] truncate hover:text-[#1A1A1A] cursor-pointer mt-0.5"
             title={currentSong.artist}
           >
             {currentSong.artist}
@@ -131,8 +129,8 @@ export const GlobalPlayer: React.FC = () => {
           <button
             onClick={() => toggleLike(currentSong)}
             aria-label={liked ? 'Unlike song' : 'Like song'}
-            className={`p-2 rounded-xl transition ${
-              liked ? 'text-rose-500 hover:text-rose-400 bg-rose-500/10' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+            className={`p-2 rounded-full transition ${
+              liked ? 'text-rose-500 bg-rose-50' : 'text-[#777777] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]'
             }`}
           >
             <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500' : ''}`} />
@@ -142,15 +140,15 @@ export const GlobalPlayer: React.FC = () => {
             onClick={() => openDownloadModal(currentSong)}
             aria-label="Download current song"
             title="Download Audio"
-            className="p-2 rounded-xl text-zinc-400 hover:text-cyan-400 hover:bg-zinc-800 transition"
+            className="p-2 rounded-full text-[#777777] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition"
           >
             <Download className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* CENTER SECTION: Controls & Progress Bar */}
-      <div className="relative z-10 flex flex-col items-center gap-2 max-w-xl w-2/4 px-4">
+      {/* CENTER SECTION: Audio Controls & Progress Waveform */}
+      <div className="flex flex-col items-center gap-2 max-w-xl w-2/4 px-4">
         {/* Buttons */}
         <div className="flex items-center gap-5">
           {/* Shuffle */}
@@ -158,7 +156,7 @@ export const GlobalPlayer: React.FC = () => {
             onClick={toggleShuffle}
             aria-label="Toggle Shuffle"
             className={`p-1.5 rounded-full transition ${
-              isShuffled ? 'text-indigo-400' : 'text-zinc-400 hover:text-white'
+              isShuffled ? 'text-[#1A1A1A] font-bold bg-[#F0F0F0]' : 'text-[#777777] hover:text-[#1A1A1A]'
             }`}
             title={isShuffled ? 'Shuffle is On' : 'Shuffle is Off'}
           >
@@ -169,7 +167,7 @@ export const GlobalPlayer: React.FC = () => {
           <button
             onClick={prev}
             aria-label="Previous track"
-            className="p-1.5 rounded-full text-zinc-300 hover:text-white transition active:scale-95"
+            className="p-2 rounded-full text-[#333333] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition active:scale-95"
           >
             <SkipBack className="w-5 h-5 fill-current" />
           </button>
@@ -179,10 +177,10 @@ export const GlobalPlayer: React.FC = () => {
             onClick={togglePlay}
             disabled={isLoading}
             aria-label={isPlaying ? 'Pause' : 'Play'}
-            className="w-11 h-11 rounded-full bg-gradient-to-r from-white to-zinc-200 hover:from-zinc-100 hover:to-white text-zinc-950 flex items-center justify-center shadow-xl shadow-white/10 transition-transform hover:scale-105 active:scale-95 disabled:opacity-80 font-bold"
+            className="w-11 h-11 rounded-full bg-[#1A1A1A] hover:bg-[#333333] text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-80"
           >
             {isLoading ? (
-              <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (
               <Pause className="w-5 h-5 fill-current" />
             ) : (
@@ -194,7 +192,7 @@ export const GlobalPlayer: React.FC = () => {
           <button
             onClick={next}
             aria-label="Next track"
-            className="p-1.5 rounded-full text-zinc-300 hover:text-white transition active:scale-95"
+            className="p-2 rounded-full text-[#333333] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition active:scale-95"
           >
             <SkipForward className="w-5 h-5 fill-current" />
           </button>
@@ -204,7 +202,7 @@ export const GlobalPlayer: React.FC = () => {
             onClick={cycleRepeatMode}
             aria-label="Repeat mode"
             className={`p-1.5 rounded-full transition ${
-              repeatMode !== 'off' ? 'text-indigo-400' : 'text-zinc-400 hover:text-white'
+              repeatMode !== 'off' ? 'text-[#1A1A1A] font-bold bg-[#F0F0F0]' : 'text-[#777777] hover:text-[#1A1A1A]'
             }`}
             title={`Repeat mode: ${repeatMode}`}
           >
@@ -214,15 +212,15 @@ export const GlobalPlayer: React.FC = () => {
 
         {/* Progress Bar & Timestamps */}
         <div className="flex items-center gap-3 w-full">
-          <span className="text-[11px] font-mono text-zinc-400 w-10 text-right">
+          <span className="text-[11px] font-mono text-[#777777] w-10 text-right font-medium">
             {formatDuration(isSeeking ? seekValue : currentTime)}
           </span>
 
           <div className="relative flex-1 flex items-center group h-4">
             {/* Background bar */}
-            <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
+            <div className="w-full h-1.5 bg-[#E5E5E5] rounded-full overflow-hidden group-hover:h-2 transition-all">
               <div
-                className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 rounded-full shadow-sm"
+                className="h-full bg-[#1A1A1A] rounded-full transition-all"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -244,30 +242,30 @@ export const GlobalPlayer: React.FC = () => {
             />
           </div>
 
-          <span className="text-[11px] font-mono text-zinc-400 w-10">
+          <span className="text-[11px] font-mono text-[#777777] w-10 font-medium">
             {formatDuration(duration)}
           </span>
         </div>
       </div>
 
       {/* RIGHT SECTION: Audio Quality, Volume, Queue & Expand */}
-      <div className="relative z-10 flex items-center justify-end gap-3 w-1/4 min-w-[240px]">
+      <div className="flex items-center justify-end gap-3 w-1/4 min-w-[240px]">
         {/* Audio Quality Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowQualityMenu(!showQualityMenu)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-xs text-zinc-300 transition"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] border border-[#E5E5E5] text-xs text-[#1A1A1A] font-semibold transition"
             title="Audio Streaming Quality"
           >
-            <Sliders className="w-3 h-3 text-indigo-400" />
-            <span className="font-mono text-[11px] font-semibold">{audioQuality}</span>
+            <Headphones className="w-3 h-3 text-[#777777]" />
+            <span className="font-mono text-[11px]">{audioQuality}</span>
           </button>
 
           {showQualityMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowQualityMenu(false)} />
-              <div className="absolute right-0 bottom-full mb-2 w-40 p-1.5 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl z-50 text-xs">
-                <p className="text-[10px] font-bold text-zinc-400 px-2 py-1 uppercase tracking-wider">
+              <div className="absolute right-0 bottom-full mb-2 w-40 p-1.5 bg-white border border-[#E5E5E5] rounded-2xl shadow-2xl z-50 text-xs">
+                <p className="text-[10px] font-bold text-[#777777] px-2 py-1 uppercase tracking-wider">
                   Audio Quality
                 </p>
                 {qualities.map(q => (
@@ -278,11 +276,11 @@ export const GlobalPlayer: React.FC = () => {
                       setShowQualityMenu(false);
                     }}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition ${
-                      audioQuality === q ? 'bg-indigo-600/30 text-indigo-300 font-bold' : 'text-zinc-300 hover:bg-zinc-800'
+                      audioQuality === q ? 'bg-[#F5F5F5] text-[#1A1A1A] font-bold' : 'text-[#555555] hover:bg-[#FAFAFA]'
                     }`}
                   >
                     <span>{q}</span>
-                    {audioQuality === q && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                    {audioQuality === q && <Check className="w-3.5 h-3.5 text-[#1A1A1A]" />}
                   </button>
                 ))}
               </div>
@@ -295,10 +293,10 @@ export const GlobalPlayer: React.FC = () => {
           <button
             onClick={toggleMute}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
-            className="p-1.5 rounded-full text-zinc-400 hover:text-white transition"
+            className="p-1.5 rounded-full text-[#777777] hover:text-[#1A1A1A] transition"
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-4 h-4 text-rose-400" />
+              <VolumeX className="w-4 h-4 text-rose-500" />
             ) : volume < 0.5 ? (
               <Volume1 className="w-4 h-4" />
             ) : (
@@ -307,9 +305,9 @@ export const GlobalPlayer: React.FC = () => {
           </button>
 
           <div className="w-20 relative flex items-center h-4">
-            <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
+            <div className="w-full h-1.5 bg-[#E5E5E5] rounded-full overflow-hidden group-hover:h-2 transition-all">
               <div
-                className="h-full bg-white group-hover:bg-indigo-400 rounded-full"
+                className="h-full bg-[#1A1A1A] rounded-full"
                 style={{ width: `${isMuted ? 0 : volume * 100}%` }}
               />
             </div>
@@ -330,10 +328,10 @@ export const GlobalPlayer: React.FC = () => {
         <button
           onClick={() => setIsQueueOpen(prev => !prev)}
           aria-label="Toggle Queue"
-          className={`p-2 rounded-xl border transition ${
+          className={`p-2 rounded-full border transition ${
             isQueueOpen
-              ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30'
-              : 'bg-zinc-900/80 hover:bg-zinc-800 border-white/10 text-zinc-300 hover:text-white'
+              ? 'bg-[#1A1A1A] border-[#1A1A1A] text-white shadow-md'
+              : 'bg-[#F5F5F5] hover:bg-[#EAEAEA] border-[#E5E5E5] text-[#555555] hover:text-[#1A1A1A]'
           }`}
           title="Playing Queue"
         >
@@ -344,7 +342,7 @@ export const GlobalPlayer: React.FC = () => {
         <button
           onClick={() => setIsFullscreenOpen(true)}
           aria-label="Open Fullscreen Player"
-          className="p-2 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition"
+          className="p-2 rounded-full bg-[#F5F5F5] hover:bg-[#EAEAEA] border border-[#E5E5E5] text-[#555555] hover:text-[#1A1A1A] transition"
           title="Fullscreen Mode"
         >
           <Maximize2 className="w-4 h-4" />

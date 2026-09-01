@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Shuffle, Heart, Disc3, Clock, Share2, Sparkles } from 'lucide-react';
+import { Play, Shuffle, Disc3, Clock, Sparkles } from 'lucide-react';
 import { getAlbumById, searchSongs } from '../services/api';
 import { Album as AlbumType, Song } from '../types/music';
 import { SongRow } from '../components/SongRow';
@@ -50,7 +50,7 @@ export const Album: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto pb-32">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto pb-32">
         <DetailHeroSkeleton />
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -63,7 +63,7 @@ export const Album: React.FC = () => {
 
   if (error || !album) {
     return (
-      <div className="p-4 sm:p-8 max-w-7xl mx-auto pb-32">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto pb-32">
         <ErrorState
           title="Album Unavailable"
           message={error || 'Album could not be found.'}
@@ -90,11 +90,11 @@ export const Album: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto pb-32 animate-fade-in">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto pb-32">
       {/* Hero Header */}
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-gradient-to-b from-indigo-950/50 via-zinc-900/80 to-zinc-900/40 border border-white/10 shadow-2xl">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-end p-6 md:p-8 rounded-3xl bg-[#151920] lg:bg-white border border-white/10 lg:border-gray-200/80 shadow-sm">
         {/* Cover Art */}
-        <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden bg-zinc-800 shadow-2xl shrink-0 ring-1 ring-white/15">
+        <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden bg-zinc-800 lg:bg-gray-100 shadow-md shrink-0 ring-1 ring-black/10">
           <ImageWithFallback
             src={album.image}
             alt={album.name}
@@ -107,17 +107,17 @@ export const Album: React.FC = () => {
 
         {/* Album Meta */}
         <div className="flex flex-col space-y-3 text-center md:text-left flex-1 min-w-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-bold self-center md:self-start border border-white/10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-400/20 text-lime-400 lg:text-lime-700 text-xs font-bold self-center md:self-start border border-lime-400/30">
             <Disc3 className="w-3.5 h-3.5" />
             <span>Album</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight break-words">
+          <h1 className="text-2xl sm:text-4xl font-black text-white lg:text-gray-900 tracking-tight break-words">
             {album.name}
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-300 font-medium">
-            <span className="font-bold text-white hover:underline cursor-pointer" onClick={() => navigate(`/search?q=${encodeURIComponent(album.artist || '')}`)}>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 lg:text-gray-600 font-medium">
+            <span className="font-bold text-white lg:text-gray-900 hover:underline cursor-pointer" onClick={() => navigate(`/search?q=${encodeURIComponent(album.artist || '')}`)}>
               {album.artist}
             </span>
             {album.year && <span>• {album.year}</span>}
@@ -127,20 +127,20 @@ export const Album: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-center md:justify-start gap-3 pt-3">
+          <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
             <button
               onClick={handlePlayAll}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#F4FF3B] lg:bg-[#1A1A1A] text-black lg:text-white font-bold text-xs sm:text-sm shadow-md transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
-              <Play className="w-4 h-4 fill-white" />
+              <Play className="w-4 h-4 fill-current" />
               <span>Play All</span>
             </button>
 
             <button
               onClick={handleShuffle}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 px-5 py-3 rounded-full bg-zinc-800/90 hover:bg-zinc-700 text-white font-semibold text-sm border border-white/10 transition active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 lg:bg-gray-100 text-white lg:text-gray-900 font-semibold text-xs sm:text-sm border border-white/10 lg:border-gray-200 transition hover:bg-white/20 lg:hover:bg-gray-200 active:scale-95 disabled:opacity-50"
             >
               <Shuffle className="w-4 h-4" />
               <span>Shuffle</span>
@@ -151,19 +151,18 @@ export const Album: React.FC = () => {
 
       {/* Song List */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-zinc-400 lg:text-gray-400 uppercase tracking-wider border-b border-white/5 lg:border-gray-200">
           <div className="flex items-center gap-4">
             <span className="w-6 text-center">#</span>
             <span>Title</span>
           </div>
           <div className="flex items-center gap-8">
-            <span className="hidden md:inline">Album</span>
             <Clock className="w-4 h-4" />
           </div>
         </div>
 
         {songs.length === 0 ? (
-          <div className="p-8 text-center text-xs text-zinc-500">No tracks available in this album.</div>
+          <div className="p-8 text-center text-xs text-zinc-500 lg:text-gray-400">No tracks available in this album.</div>
         ) : (
           songs.map((song, i) => (
             <SongRow
@@ -179,12 +178,12 @@ export const Album: React.FC = () => {
 
       {/* Related Music */}
       {relatedSongs.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-white/5">
+        <div className="space-y-4 pt-6 border-t border-white/5 lg:border-gray-200">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-            <h3 className="text-lg font-black text-white tracking-tight">More Like This</h3>
+            <Sparkles className="w-4 h-4 text-lime-400 lg:text-lime-600" />
+            <h3 className="text-lg font-bold text-white lg:text-gray-900 tracking-tight">More Like This</h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
             {relatedSongs.map(song => (
               <SongCard key={song.id} song={song} />
             ))}

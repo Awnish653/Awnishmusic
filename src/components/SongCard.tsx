@@ -43,10 +43,10 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
           playSong(song, queueContext);
         }
       }}
-      className="group relative flex flex-col p-3 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/80 border border-white/5 hover:border-white/15 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-indigo-950/30"
+      className="group relative flex flex-col p-3 rounded-2xl bg-[#151920] lg:bg-white hover:bg-[#1B1F26] lg:hover:bg-gray-50 border border-white/5 lg:border-gray-200/80 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
     >
       {/* Artwork Container */}
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-800 mb-3 shadow-inner">
+      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-800 lg:bg-gray-100 mb-3 shadow-inner">
         <ImageWithFallback
           src={song.image}
           alt={song.title}
@@ -57,7 +57,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
         />
 
         {/* Hover Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-3">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-2.5">
           {/* Like Heart */}
           <button
             onClick={handleLikeClick}
@@ -68,7 +68,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                 : 'text-white/80 hover:text-white bg-black/40 hover:bg-black/60'
             }`}
           >
-            <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500' : ''}`} />
+            <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-rose-500' : ''}`} />
           </button>
 
           {/* Quick Menu */}
@@ -81,7 +81,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
               aria-label="Song options"
               className="p-2 rounded-full text-white/80 hover:text-white bg-black/40 hover:bg-black/60 backdrop-blur-md transition"
             >
-              <MoreVertical className="w-4 h-4" />
+              <MoreVertical className="w-3.5 h-3.5" />
             </button>
 
             {/* Dropdown Menu */}
@@ -95,7 +95,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                   }}
                 />
                 <div
-                  className="absolute right-0 bottom-full mb-2 w-52 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 shadow-2xl z-50 text-xs text-zinc-200"
+                  className="absolute right-0 bottom-full mb-2 w-52 p-1.5 rounded-2xl bg-zinc-900 lg:bg-white border border-white/10 lg:border-gray-200 shadow-2xl z-50 text-xs text-zinc-200 lg:text-gray-800"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
@@ -103,9 +103,9 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                       openDownloadModal(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-indigo-600/20 hover:text-indigo-300 text-left transition font-semibold"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-lime-400/20 hover:text-lime-700 text-left transition font-semibold"
                   >
-                    <Download className="w-4 h-4 text-indigo-400" />
+                    <Download className="w-4 h-4 text-lime-600" />
                     Download MP3 (HD)
                   </button>
                   <button
@@ -113,9 +113,9 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                       addToQueue(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-gray-100 text-left transition"
                   >
-                    <ListPlus className="w-4 h-4 text-zinc-400" />
+                    <ListPlus className="w-4 h-4 text-zinc-400 lg:text-gray-500" />
                     Add to Queue
                   </button>
                   <button
@@ -123,9 +123,9 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                       playNextInQueue(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-gray-100 text-left transition"
                   >
-                    <Radio className="w-4 h-4 text-zinc-400" />
+                    <Radio className="w-4 h-4 text-zinc-400 lg:text-gray-500" />
                     Play Next
                   </button>
                   <button
@@ -133,9 +133,9 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                       setActiveSongForModal(song);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-gray-100 text-left transition"
                   >
-                    <Plus className="w-4 h-4 text-zinc-400" />
+                    <Plus className="w-4 h-4 text-zinc-400 lg:text-gray-500" />
                     Add to Playlist
                   </button>
                   {song.album?.id && (
@@ -144,9 +144,9 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
                         navigate(`/album/${song.album?.id}`);
                         setShowMenu(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-gray-100 text-left transition"
                     >
-                      <Disc3 className="w-4 h-4 text-zinc-400" />
+                      <Disc3 className="w-4 h-4 text-zinc-400 lg:text-gray-500" />
                       View Album
                     </button>
                   )}
@@ -160,25 +160,25 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
         <button
           onClick={handlePlayClick}
           aria-label={isCurrent && isPlaying ? 'Pause' : 'Play'}
-          className={`absolute right-3 bottom-3 w-11 h-11 rounded-full bg-gradient-to-r from-violet-600 to-indigo-500 text-white flex items-center justify-center shadow-xl shadow-indigo-950/50 transition-all duration-300 ${
+          className={`absolute right-2.5 bottom-2.5 w-10 h-10 rounded-full bg-lime-400 text-gray-950 flex items-center justify-center shadow-lg transition-all duration-300 ${
             isCurrent
-              ? 'opacity-100 scale-100 ring-2 ring-white/40'
+              ? 'opacity-100 scale-100'
               : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-105'
           }`}
         >
           {isCurrent && isPlaying ? (
-            <Pause className="w-5 h-5 fill-white" />
+            <Pause className="w-4 h-4 fill-current" />
           ) : (
-            <Play className="w-5 h-5 fill-white ml-0.5" />
+            <Play className="w-4 h-4 fill-current ml-0.5" />
           )}
         </button>
 
         {/* Equalizer Wave Indicator if current and playing */}
         {isCurrent && isPlaying && (
-          <div className="absolute top-2.5 left-2.5 px-2 py-1 rounded-full bg-black/70 backdrop-blur-md flex items-center gap-1">
-            <span className="w-1 h-3 bg-cyan-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }} />
-            <span className="w-1 h-4 bg-indigo-400 rounded-full animate-bounce" style={{ animationDuration: '0.4s' }} />
-            <span className="w-1 h-2 bg-fuchsia-400 rounded-full animate-bounce" style={{ animationDuration: '0.7s' }} />
+          <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/70 backdrop-blur-md flex items-center gap-1">
+            <span className="w-1 h-3 bg-lime-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }} />
+            <span className="w-1 h-4 bg-emerald-400 rounded-full animate-bounce" style={{ animationDuration: '0.4s' }} />
+            <span className="w-1 h-2 bg-yellow-300 rounded-full animate-bounce" style={{ animationDuration: '0.7s' }} />
           </div>
         )}
       </div>
@@ -186,14 +186,16 @@ export const SongCard: React.FC<SongCardProps> = ({ song, queueContext }) => {
       {/* Info Section */}
       <div className="flex flex-col min-w-0">
         <h4
-          className={`text-sm font-bold truncate leading-tight tracking-tight transition ${
-            isCurrent ? 'text-indigo-400' : 'text-zinc-100 group-hover:text-white'
+          className={`text-xs font-bold truncate leading-tight tracking-tight transition ${
+            isCurrent
+              ? 'text-lime-400 lg:text-lime-700'
+              : 'text-white lg:text-gray-900 group-hover:text-lime-400 lg:group-hover:text-lime-700'
           }`}
           title={song.title}
         >
           {song.title}
         </h4>
-        <p className="text-xs text-zinc-400 truncate mt-1 hover:text-zinc-300" title={song.artist}>
+        <p className="text-[11px] text-zinc-400 lg:text-gray-500 truncate mt-1" title={song.artist}>
           {song.artist}
         </p>
       </div>

@@ -97,12 +97,15 @@ export interface Playlist {
   id: string;
   name: string;
   title?: string;
+  subtitle?: string;
+  artist?: string;
   description?: string;
   year?: string | number;
   type?: string;
   language?: string;
   songCount?: number;
   followerCount?: string | number;
+  playCount?: string | number;
   lastUpdated?: string;
   userId?: string;
   username?: string;
@@ -112,6 +115,7 @@ export interface Playlist {
   images?: ImageObject[];
   songs?: Song[];
   url?: string;
+  explicit?: boolean;
   explicitContent?: boolean;
   source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2';
   rawId?: string | number;

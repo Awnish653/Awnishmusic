@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, MoreVertical, Plus, ListPlus, Radio, Disc3, Download, Music2 } from 'lucide-react';
+import { Play, Pause, Heart, MoreVertical, Plus, ListPlus, Radio, Disc3, Download, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Song } from '../types/music';
 import { usePlayer } from '../context/PlayerContext';
@@ -45,33 +45,22 @@ export const SongRow: React.FC<SongRowProps> = ({
     openDownloadModal(song);
   };
 
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToQueue(song);
+  };
+
   return (
     <div
       onClick={handlePlay}
-      className={`group flex items-center justify-between gap-3 p-2 sm:px-3 sm:py-2.5 rounded-2xl transition-all duration-200 cursor-pointer border select-none ${
+      className={`group flex items-center justify-between gap-3 p-2 sm:px-4 sm:py-3 rounded-2xl transition-all duration-200 cursor-pointer select-none border ${
         isCurrent
-          ? 'bg-gradient-to-r from-indigo-950/70 via-violet-950/40 to-zinc-900/60 border-indigo-500/40 text-white shadow-lg shadow-indigo-950/20'
-          : 'bg-zinc-900/20 hover:bg-zinc-800/60 border-transparent hover:border-white/5 text-zinc-300 hover:text-white'
+          ? 'bg-[#151920] lg:bg-[#F5F5F5] border-[#F4FF3B]/30 lg:border-[#1A1A1A]/30 text-white lg:text-[#1A1A1A] shadow-sm'
+          : 'bg-[#0E1117] lg:bg-white hover:bg-[#151920] lg:hover:bg-[#F9F9F9] border-white/5 lg:border-[#EFEFEF] text-white lg:text-[#1A1A1A]'
       }`}
     >
-      {/* Left: Index / Play / Cover / Info */}
+      {/* Left: Cover / Info */}
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        {/* Index number or Equalizer / Play indicator */}
-        <div className="w-6 text-center text-xs font-mono text-zinc-500 shrink-0 flex items-center justify-center">
-          {isCurrent && isPlaying ? (
-            <div className="flex items-end gap-0.5 h-3.5">
-              <span className="w-1 bg-cyan-400 rounded-full animate-bounce" style={{ height: '80%', animationDuration: '0.6s' }} />
-              <span className="w-1 bg-indigo-400 rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.4s' }} />
-              <span className="w-1 bg-fuchsia-400 rounded-full animate-bounce" style={{ height: '60%', animationDuration: '0.7s' }} />
-            </div>
-          ) : (
-            <span className="group-hover:hidden font-semibold">{index !== undefined ? index + 1 : ''}</span>
-          )}
-          <span className={`${isCurrent && isPlaying ? 'hidden' : 'hidden group-hover:block text-white'}`}>
-            <Play className="w-3.5 h-3.5 fill-white" />
-          </span>
-        </div>
-
         {/* Cover Thumbnail */}
         {showCover && (
           <ImageWithFallback
@@ -79,7 +68,7 @@ export const SongRow: React.FC<SongRowProps> = ({
             alt={song.title}
             fallbackTitle={song.title}
             type="song"
-            containerClassName="w-11 h-11 rounded-xl shrink-0 shadow-md ring-1 ring-white/10"
+            containerClassName="w-12 h-12 rounded-xl shrink-0 overflow-hidden bg-zinc-800 lg:bg-[#EFEFEF] shadow-sm ring-1 ring-white/5 lg:ring-black/5"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         )}
@@ -87,13 +76,15 @@ export const SongRow: React.FC<SongRowProps> = ({
         {/* Title and Artist */}
         <div className="min-w-0 flex-1">
           <p
-            className={`text-sm font-bold truncate leading-tight tracking-tight transition ${
-              isCurrent ? 'text-indigo-400 font-extrabold' : 'text-zinc-100 group-hover:text-white'
+            className={`text-sm font-semibold truncate leading-tight transition ${
+              isCurrent
+                ? 'text-[#F4FF3B] lg:text-[#1A1A1A] font-bold'
+                : 'text-white lg:text-[#1A1A1A]'
             }`}
           >
             {song.title}
           </p>
-          <p className="text-xs text-zinc-400 truncate mt-0.5 hover:text-zinc-200">
+          <p className="text-xs text-[#8E8E93] lg:text-[#777777] truncate mt-0.5 font-normal">
             {song.artist}
           </p>
         </div>
@@ -101,46 +92,47 @@ export const SongRow: React.FC<SongRowProps> = ({
 
       {/* Center: Album Name (Desktop) */}
       {showAlbum && (
-        <div className="hidden md:block w-1/4 text-xs text-zinc-400 truncate hover:text-zinc-200">
+        <div className="hidden lg:block w-1/4 text-xs text-[#777777] truncate hover:text-[#1A1A1A]">
           {song.album?.name || '-'}
         </div>
       )}
 
-      {/* Right: Download, Duration, Like, Menu */}
-      <div className="flex items-center gap-1 sm:gap-2.5 shrink-0" onClick={e => e.stopPropagation()}>
-        {/* Direct Quick Download Button */}
+      {/* Right: Quick Add (+), Duration, Like, Menu */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0" onClick={e => e.stopPropagation()}>
+        {/* Duration */}
+        <span className="text-xs font-mono text-[#8E8E93] lg:text-[#777777] w-9 text-right">
+          {formatDuration(song.duration)}
+        </span>
+
+        {/* Quick Add Button (+) */}
         <button
-          onClick={handleDownload}
-          title="Download MP3"
-          aria-label="Download Song"
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-400 hover:bg-zinc-800/80 transition opacity-0 group-hover:opacity-100"
+          onClick={handleQuickAdd}
+          title="Add to queue"
+          aria-label="Add to queue"
+          className="p-1 rounded-full text-zinc-300 lg:text-[#777777] hover:text-[#F4FF3B] lg:hover:text-[#1A1A1A] hover:bg-white/10 lg:hover:bg-[#EAEAEA] transition"
         >
-          <Download className="w-3.5 h-3.5" />
+          <Plus className="w-5 h-5" />
         </button>
 
         {/* Like Button */}
         <button
           onClick={() => toggleLike(song)}
           aria-label={liked ? 'Unlike' : 'Like'}
-          className={`p-1.5 rounded-lg transition ${
+          className={`hidden sm:flex p-1.5 rounded-full transition ${
             liked
-              ? 'text-rose-500 hover:text-rose-400'
-              : 'text-zinc-400 hover:text-white opacity-0 group-hover:opacity-100'
+              ? 'text-rose-500'
+              : 'text-[#A7A7A7] lg:text-[#777777] hover:text-rose-400 opacity-0 group-hover:opacity-100'
           }`}
         >
           <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500 opacity-100' : ''}`} />
         </button>
 
-        <span className="text-xs text-zinc-400 font-mono w-10 text-right">
-          {formatDuration(song.duration)}
-        </span>
-
         {/* 3-dots Menu */}
-        <div className="relative">
+        <div className="relative hidden lg:block">
           <button
             onClick={() => setShowMenu(!showMenu)}
             aria-label="Options"
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition opacity-80 group-hover:opacity-100"
+            className="p-1.5 rounded-full text-[#A7A7A7] lg:text-[#777777] hover:text-white lg:hover:text-[#1A1A1A] hover:bg-white/10 lg:hover:bg-[#EAEAEA] transition"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -149,27 +141,27 @@ export const SongRow: React.FC<SongRowProps> = ({
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
               <div
-                className="absolute right-0 top-full mt-1 w-52 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 shadow-2xl z-50 text-xs text-zinc-200"
+                className="absolute right-0 top-full mt-1 w-52 p-1.5 rounded-2xl bg-[#151920] lg:bg-white border border-white/10 lg:border-[#E5E5E5] shadow-2xl z-50 text-xs text-white lg:text-[#1A1A1A]"
                 onClick={e => e.stopPropagation()}
               >
                 <button
-                  onClick={() => {
-                    openDownloadModal(song);
+                  onClick={(e) => {
+                    handleDownload(e);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-indigo-600/20 hover:text-indigo-300 text-left transition font-semibold"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition font-semibold"
                 >
-                  <Download className="w-4 h-4 text-indigo-400" />
-                  Download Audio (Lossless)
+                  <Download className="w-4 h-4 text-[#F4FF3B] lg:text-[#1A1A1A]" />
+                  Download Lossless Audio
                 </button>
                 <button
                   onClick={() => {
                     addToQueue(song);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
                 >
-                  <ListPlus className="w-4 h-4 text-zinc-400" />
+                  <ListPlus className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
                   Add to Queue
                 </button>
                 <button
@@ -177,9 +169,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                     playNextInQueue(song);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
                 >
-                  <Radio className="w-4 h-4 text-zinc-400" />
+                  <Radio className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
                   Play Next
                 </button>
                 <button
@@ -187,9 +179,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                     setActiveSongForModal(song);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
                 >
-                  <Plus className="w-4 h-4 text-zinc-400" />
+                  <Plus className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
                   Add to Playlist
                 </button>
                 {song.album?.id && (
@@ -198,9 +190,9 @@ export const SongRow: React.FC<SongRowProps> = ({
                       navigate(`/album/${song.album?.id}`);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-800 hover:text-white text-left transition"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 lg:hover:bg-[#F5F5F5] text-left transition"
                   >
-                    <Disc3 className="w-4 h-4 text-zinc-400" />
+                    <Disc3 className="w-4 h-4 text-zinc-400 lg:text-[#777777]" />
                     View Album
                   </button>
                 )}
@@ -210,7 +202,7 @@ export const SongRow: React.FC<SongRowProps> = ({
                       onRemove();
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-rose-950/40 text-rose-400 text-left transition border-t border-white/5 mt-1"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-500 text-left transition border-t border-white/5 lg:border-[#E5E5E5] mt-1"
                   >
                     Remove from this list
                   </button>
