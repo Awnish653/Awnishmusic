@@ -33,8 +33,15 @@ import {
   mergeSongLists,
   mergeAlbumLists,
   mergeArtistLists,
-  mergePlaylistLists
+  mergePlaylistLists,
+  mergeMultipleSongLists
 } from './catalogMerger';
+import {
+  searchGaanaSongs,
+  getGaanaTrack,
+  pingGaana
+} from './gaana/gaanaApi';
+import { storage } from '../utils/storage';
 
 const API_BASE_URL = 'https://jiosaavanapi-flame.vercel.app';
 
@@ -89,19 +96,21 @@ export async function search(query: string, preferredQuality?: AudioQualityKey):
 
   const cleanQuery = query.trim();
 
-  // Execute queries to BOTH APIs independently and concurrently
+  // Execute queries to all APIs independently and concurrently (JioSaavn + Flip Musix + Gaana)
   const [
     jioGlobalRes,
     jioSongsRes,
     flipSongsRes,
     flipAlbumsRes,
-    flipArtistsRes
+    flipArtistsRes,
+    gaanaSongsRes
   ] = await Promise.allSettled([
     fetchFromApi<any>(`/api/search?query=${encodeURIComponent(cleanQuery)}`),
     searchJioSongs(cleanQuery, preferredQuality),
     searchFlipSongs(cleanQuery, 1),
     searchFlipAlbums(cleanQuery, 1),
-    searchFlipArtists(cleanQuery, 1)
+    searchFlipArtists(cleanQuery, 1),
+    searchGaanaSongs(cleanQuery, 15, preferredQuality)
   ]);
 
   // Extract API 1 (JioSaavn) results
@@ -124,8 +133,11 @@ export async function search(query: string, preferredQuality?: AudioQualityKey):
   const flipAlbums = flipAlbumsRes.status === 'fulfilled' ? flipAlbumsRes.value : [];
   const flipArtists = flipArtistsRes.status === 'fulfilled' ? flipArtistsRes.value : [];
 
-  // Merge and deduplicate both complete catalogs
-  const mergedSongs = mergeSongLists(jioSongs, flipSongs);
+  // Extract API 3 (Gaana) results
+  const gaanaSongs = gaanaSongsRes.status === 'fulfilled' ? gaanaSongsRes.value : [];
+
+  // Merge and deduplicate catalogs across all working sources
+  const mergedSongs = mergeMultipleSongLists([jioSongs, flipSongs, gaanaSongs]);
   const mergedAlbums = mergeAlbumLists(jioAlbums, flipAlbums);
   const mergedArtists = mergeArtistLists(jioArtists, flipArtists);
   const mergedPlaylists = jioPlaylists;
@@ -154,20 +166,22 @@ async function searchJioSongs(query: string, preferredQuality?: AudioQualityKey,
 }
 
 /**
- * Unified Search Songs across BOTH APIs
+ * Unified Search Songs across all APIs (JioSaavn + Flip Musix + Gaana)
  */
 export async function searchSongs(query: string, preferredQuality?: AudioQualityKey, page: number = 1): Promise<Song[]> {
   if (!query || !query.trim()) return [];
 
-  const [jioRes, flipRes] = await Promise.allSettled([
+  const [jioRes, flipRes, gaanaRes] = await Promise.allSettled([
     searchJioSongs(query, preferredQuality, page),
-    searchFlipSongs(query, page)
+    searchFlipSongs(query, page),
+    page === 1 ? searchGaanaSongs(query, 15, preferredQuality) : Promise.resolve([])
   ]);
 
   const jioSongs = jioRes.status === 'fulfilled' ? jioRes.value : [];
   const flipSongs = flipRes.status === 'fulfilled' ? flipRes.value : [];
+  const gaanaSongs = gaanaRes.status === 'fulfilled' ? gaanaRes.value : [];
 
-  return mergeSongLists(jioSongs, flipSongs);
+  return mergeMultipleSongLists([jioSongs, flipSongs, gaanaSongs]);
 }
 
 /**
@@ -235,6 +249,19 @@ export async function searchPlaylists(query: string, page: number = 1): Promise<
  */
 export async function getSongById(id: string, preferredQuality?: AudioQualityKey): Promise<Song | null> {
   if (!id) return null;
+
+  // Case 0: Gaana track
+  if (id.startsWith('gaana_')) {
+    try {
+      const seokey = id.replace(/^gaana_/, '');
+      const gaanaSong = await getGaanaTrack(seokey, preferredQuality);
+      if (gaanaSong) {
+        return gaanaSong;
+      }
+    } catch (e) {
+      console.warn(`[Gaana API] getSongById(${id}) failed:`, e);
+    }
+  }
 
   // Case 1: Flip Musix track
   if (id.startsWith('flip_')) {
@@ -639,20 +666,9 @@ export const CURATED_POPULAR_ARTISTS: Artist[] = [
 ];
 
 /**
- * Get unified home feed data combining curated sections from both APIs
+ * Fetch fresh unified home data across all working APIs
  */
-export async function getUnifiedHomeData(): Promise<{
-  trendingNow: Song[];
-  weeklyCharts: Song[];
-  trendingAlbums: Album[];
-  popularArtists: Artist[];
-  curatedPlaylists: Playlist[];
-  bollywoodHits: Song[];
-  punjabiBeats: Song[];
-  ninetiesHits: Song[];
-  chillLofi: Song[];
-  genres: string[];
-}> {
+async function fetchFreshHomeData() {
   const [
     flipFeedRes,
     bollyJioRes,
@@ -662,7 +678,9 @@ export async function getUnifiedHomeData(): Promise<{
     trendingHitsJioRes,
     albJioRes,
     plJioRes,
-    popArtistsRes
+    popArtistsRes,
+    gaanaBollyRes,
+    gaanaPunjabiRes
   ] = await Promise.allSettled([
     getFlipHomeFeed(),
     searchJioSongs('Bollywood Hits'),
@@ -672,7 +690,9 @@ export async function getUnifiedHomeData(): Promise<{
     searchJioSongs('Hindi Trending 2024'),
     searchAlbums('Bollywood Hits'),
     searchPlaylists('Top Bollywood'),
-    getPopularArtists()
+    getPopularArtists(),
+    searchGaanaSongs('Bollywood Hits', 8),
+    searchGaanaSongs('Punjabi Hits', 8)
   ]);
 
   const flipFeed = flipFeedRes.status === 'fulfilled' ? flipFeedRes.value : null;
@@ -684,18 +704,21 @@ export async function getUnifiedHomeData(): Promise<{
   const albJio = albJioRes.status === 'fulfilled' ? albJioRes.value : [];
   const plJio = plJioRes.status === 'fulfilled' ? plJioRes.value : [];
   const apiArtists = popArtistsRes.status === 'fulfilled' ? popArtistsRes.value : [];
+  const gaanaBolly = gaanaBollyRes.status === 'fulfilled' ? gaanaBollyRes.value : [];
+  const gaanaPunjabi = gaanaPunjabiRes.status === 'fulfilled' ? gaanaPunjabiRes.value : [];
 
   const flipTrending = flipFeed?.trendingSongs || [];
   const flipCharts = flipFeed?.topCharts || [];
   const flipAlbums = flipFeed?.trendingAlbums || [];
   const flipRecent = flipFeed?.recentlyAdded || [];
 
-  // Merge trending from both
-  const trendingNow = mergeSongLists(trendingHitsJio.length > 0 ? trendingHitsJio : bollyJio, flipTrending);
-  const weeklyCharts = mergeSongLists(flipCharts, bollyJio);
+  // Merge trending from all working sources (JioSaavn + Flip + Gaana)
+  const baseTrending = trendingHitsJio.length > 0 ? trendingHitsJio : bollyJio;
+  const trendingNow = mergeMultipleSongLists([baseTrending, flipTrending, gaanaBolly]);
+  const weeklyCharts = mergeMultipleSongLists([flipCharts, bollyJio, gaanaPunjabi]);
   const trendingAlbums = mergeAlbumLists(albJio, flipAlbums);
-  const bollywoodHits = bollyJio;
-  const punjabiBeats = punjabiJio;
+  const bollywoodHits = mergeMultipleSongLists([bollyJio, gaanaBolly]);
+  const punjabiBeats = mergeMultipleSongLists([punjabiJio, gaanaPunjabi]);
   const ninetiesHits = ninetiesJio;
   const chillLofi = mergeSongLists(chillJio, flipRecent);
   
@@ -716,7 +739,7 @@ export async function getUnifiedHomeData(): Promise<{
     'Ghazals'
   ];
 
-  return {
+  const payload = {
     trendingNow,
     weeklyCharts,
     trendingAlbums,
@@ -728,6 +751,37 @@ export async function getUnifiedHomeData(): Promise<{
     chillLofi,
     genres
   };
+
+  storage.saveHomeDataCache(payload);
+  return payload;
+}
+
+/**
+ * Get unified home feed data combining curated sections from all APIs
+ * Uses cache-first strategy with silent background revalidation for instant, flicker-free rendering
+ */
+export async function getUnifiedHomeData(): Promise<{
+  trendingNow: Song[];
+  weeklyCharts: Song[];
+  trendingAlbums: Album[];
+  popularArtists: Artist[];
+  curatedPlaylists: Playlist[];
+  bollywoodHits: Song[];
+  punjabiBeats: Song[];
+  ninetiesHits: Song[];
+  chillLofi: Song[];
+  genres: string[];
+}> {
+  const cached = storage.getHomeDataCache();
+  if (cached && Array.isArray(cached.trendingNow) && cached.trendingNow.length > 0) {
+    // Revalidate in background without blocking initial paint
+    setTimeout(() => {
+      fetchFreshHomeData().catch(() => {});
+    }, 200);
+    return cached;
+  }
+
+  return fetchFreshHomeData();
 }
 
 export {
@@ -735,5 +789,8 @@ export {
   getFlipChartAlbums,
   getFlipRecentSongs,
   getFlipGenres,
-  getFlipStreamUrl
+  getFlipStreamUrl,
+  searchGaanaSongs,
+  getGaanaTrack,
+  pingGaana
 };

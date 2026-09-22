@@ -42,7 +42,9 @@ export interface Song {
   audioUrls: AudioUrl[];
   playableUrl: string;
   url?: string;
-  source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2';
+  source?: 'jiosaavn' | 'flip' | 'merged' | 'api1' | 'api2' | 'gaana';
+  provider?: 'gaana' | 'jiosaavn' | 'flip' | string;
+  seokey?: string;
   rawId?: string | number;
   streamEndpoint?: string;
   downloadEndpoint?: string;

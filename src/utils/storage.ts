@@ -8,10 +8,36 @@ const STORAGE_KEYS = {
   VOLUME: 'awnish_volume_v1',
   MUTED: 'awnish_muted_v1',
   RECENT_SEARCHES: 'awnish_recent_searches_v1',
-  FOLLOWED_ARTISTS: 'awnish_followed_artists_v1'
+  FOLLOWED_ARTISTS: 'awnish_followed_artists_v1',
+  HOME_CACHE: 'awnish_home_feed_cache_v1'
 };
 
 export const storage = {
+  getHomeDataCache(): any | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.HOME_CACHE);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.expiry && Date.now() < parsed.expiry && parsed.data) {
+        return parsed.data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  saveHomeDataCache(data: any) {
+    try {
+      const payload = {
+        data,
+        expiry: Date.now() + 15 * 60 * 1000
+      };
+      localStorage.setItem(STORAGE_KEYS.HOME_CACHE, JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Failed to save home cache:', e);
+    }
+  },
   getLikedSongs(): Song[] {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.LIKED_SONGS);

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import Hls from 'hls.js';
 import { Song, RepeatMode, AudioQualityKey } from '../types/music';
 import { storage } from '../utils/storage';
 import { getSongById, getSongSuggestions, searchSongs } from '../services/api';
@@ -78,6 +79,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const previousVolumeRef = useRef<number>(volume);
 
   // Initialize HTML5 Audio instance
@@ -141,6 +143,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
       audio.pause();
       audio.src = '';
     };
@@ -306,19 +312,61 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = streamUrl;
-        audioRef.current.load();
-        
-        try {
-          await audioRef.current.play();
-          setIsPlaying(true);
-        } catch (playErr: any) {
-          // If browser blocked autoplay, keep it loaded so next user click starts
-          console.warn('Playback start notice:', playErr);
-          if (playErr.name === 'NotAllowedError') {
-            setIsPlaying(false);
-          } else {
+
+        const isHls = streamUrl.includes('.m3u8') || resolvedSong.provider === 'gaana';
+
+        if (isHls && Hls.isSupported()) {
+          if (hlsRef.current) {
+            hlsRef.current.destroy();
+            hlsRef.current = null;
+          }
+          const hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true
+          });
+          hlsRef.current = hls;
+          hls.loadSource(streamUrl);
+          hls.attachMedia(audioRef.current);
+          hls.on(Hls.Events.MANIFEST_PARSED, async () => {
+            try {
+              await audioRef.current?.play();
+              setIsPlaying(true);
+            } catch (playErr: any) {
+              console.warn('Playback start notice:', playErr);
+              if (playErr.name === 'NotAllowedError') {
+                setIsPlaying(false);
+              } else {
+                setIsPlaying(true);
+              }
+            }
+          });
+          hls.on(Hls.Events.ERROR, (_, data) => {
+            if (data.fatal) {
+              console.warn('[HLS] Stream error:', data.type);
+              setIsPlaying(false);
+              setIsLoading(false);
+              setError('Failed to stream audio track via HLS. Trying next track...');
+            }
+          });
+        } else {
+          if (hlsRef.current) {
+            hlsRef.current.destroy();
+            hlsRef.current = null;
+          }
+          audioRef.current.src = streamUrl;
+          audioRef.current.load();
+          
+          try {
+            await audioRef.current.play();
             setIsPlaying(true);
+          } catch (playErr: any) {
+            // If browser blocked autoplay, keep it loaded so next user click starts
+            console.warn('Playback start notice:', playErr);
+            if (playErr.name === 'NotAllowedError') {
+              setIsPlaying(false);
+            } else {
+              setIsPlaying(true);
+            }
           }
         }
       }

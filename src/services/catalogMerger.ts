@@ -142,6 +142,31 @@ export function mergeSongLists(primary: Song[], secondary: Song[]): Song[] {
 }
 
 /**
+ * Smart multi-source interleaving and deduplication for 2 or more sources
+ * (e.g. JioSaavn + Flip Musix + Gaana)
+ */
+export function mergeMultipleSongLists(sources: Song[][]): Song[] {
+  const merged: Song[] = [];
+  const seen: Song[] = [];
+
+  const maxLen = Math.max(0, ...sources.map(s => s.length));
+
+  for (let i = 0; i < maxLen; i++) {
+    for (const source of sources) {
+      if (i < source.length) {
+        const candidate = source[i];
+        if (candidate && !seen.some(s => isDuplicateSong(s, candidate))) {
+          seen.push(candidate);
+          merged.push(candidate);
+        }
+      }
+    }
+  }
+
+  return merged;
+}
+
+/**
  * Merge two album lists removing duplicate albums
  */
 export function mergeAlbumLists(primary: Album[], secondary: Album[]): Album[] {

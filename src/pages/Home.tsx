@@ -1,26 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Play,
   Pause,
-  Sparkles,
+  Heart,
   Flame,
+  Sparkles,
+  Globe,
+  Radio,
   Music,
   Disc3,
   Mic2,
-  Radio,
-  Compass,
-  Layers,
-  Globe,
-  ArrowRight,
-  Heart,
-  Clock,
-  Music2,
-  Maximize2,
-  Volume2,
-  Plus
+  ChevronRight,
+  Maximize2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getTimeBasedGreeting, formatDuration } from '../utils/formatters';
 import { getUnifiedHomeData } from '../services/api';
 import { Song, Album, Artist, Playlist } from '../types/music';
 import { SongCard } from '../components/SongCard';
@@ -28,50 +21,68 @@ import { SongRow } from '../components/SongRow';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { PlaylistCard } from '../components/PlaylistCard';
-import { SectionSkeleton } from '../components/LoadingSkeleton';
+import {
+  SectionSkeleton,
+  HeroPlaylistSkeleton,
+  HorizontalArtistSkeleton,
+  GenrePillsSkeleton,
+  RowSkeleton
+} from '../components/LoadingSkeleton';
 import { ErrorState } from '../components/FeedbackStates';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
 import { ImageWithFallback } from '../utils/image';
+import { formatDuration } from '../utils/formatters';
+import { storage } from '../utils/storage';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const { currentSong, isPlaying, playSong, togglePlay, currentTime, duration, setIsFullscreenOpen } = usePlayer();
   const { recentlyPlayed, isSongLiked, toggleLike } = useLibrary();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  // Synchronous cache lookup for instantaneous, zero-flash render
+  const initialCached = storage.getHomeDataCache();
+  const hasCachedData = Boolean(initialCached && Array.isArray(initialCached.trendingNow) && initialCached.trendingNow.length > 0);
+
+  const [loading, setLoading] = useState<boolean>(!hasCachedData);
   const [error, setError] = useState<string | null>(null);
 
-  const [trendingNow, setTrendingNow] = useState<Song[]>([]);
-  const [weeklyCharts, setWeeklyCharts] = useState<Song[]>([]);
-  const [trendingAlbums, setTrendingAlbums] = useState<Album[]>([]);
-  const [popularArtists, setPopularArtists] = useState<Artist[]>([]);
-  const [curatedPlaylists, setCuratedPlaylists] = useState<Playlist[]>([]);
-  const [bollywoodHits, setBollywoodHits] = useState<Song[]>([]);
-  const [punjabiBeats, setPunjabiBeats] = useState<Song[]>([]);
-  const [ninetiesHits, setNinetiesHits] = useState<Song[]>([]);
-  const [chillLofi, setChillLofi] = useState<Song[]>([]);
-  const [genres, setGenres] = useState<string[]>([]);
+  const [trendingNow, setTrendingNow] = useState<Song[]>(() => initialCached?.trendingNow || []);
+  const [weeklyCharts, setWeeklyCharts] = useState<Song[]>(() => initialCached?.weeklyCharts || []);
+  const [trendingAlbums, setTrendingAlbums] = useState<Album[]>(() => initialCached?.trendingAlbums || []);
+  const [popularArtists, setPopularArtists] = useState<Artist[]>(() => initialCached?.popularArtists || []);
+  const [curatedPlaylists, setCuratedPlaylists] = useState<Playlist[]>(() => initialCached?.curatedPlaylists || []);
+  const [bollywoodHits, setBollywoodHits] = useState<Song[]>(() => initialCached?.bollywoodHits || []);
+  const [punjabiBeats, setPunjabiBeats] = useState<Song[]>(() => initialCached?.punjabiBeats || []);
+  const [ninetiesHits, setNinetiesHits] = useState<Song[]>(() => (initialCached as any)?.ninetiesHits || []);
+  const [chillLofi, setChillLofi] = useState<Song[]>(() => initialCached?.chillLofi || []);
+  const [genres, setGenres] = useState<string[]>(() => initialCached?.genres || []);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
   const loadHomeData = async () => {
-    setLoading(true);
+    if (!hasCachedData) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const data = await getUnifiedHomeData();
-      setTrendingNow(data.trendingNow || []);
-      setWeeklyCharts(data.weeklyCharts || []);
-      setTrendingAlbums(data.trendingAlbums || []);
-      setPopularArtists(data.popularArtists || []);
-      setCuratedPlaylists(data.curatedPlaylists || []);
-      setBollywoodHits(data.bollywoodHits || []);
-      setPunjabiBeats(data.punjabiBeats || []);
-      setNinetiesHits((data as any).ninetiesHits || []);
-      setChillLofi(data.chillLofi || []);
-      setGenres(data.genres || []);
+      if (data) {
+        setTrendingNow(data.trendingNow || []);
+        setWeeklyCharts(data.weeklyCharts || []);
+        setTrendingAlbums(data.trendingAlbums || []);
+        setPopularArtists(data.popularArtists || []);
+        setCuratedPlaylists(data.curatedPlaylists || []);
+        setBollywoodHits(data.bollywoodHits || []);
+        setPunjabiBeats(data.punjabiBeats || []);
+        setNinetiesHits((data as any).ninetiesHits || []);
+        setChillLofi(data.chillLofi || []);
+        setGenres(data.genres || []);
+      }
     } catch (err: any) {
       console.error('Home load error:', err);
-      setError('Unable to load discovery stream. Please check your connection.');
+      if (!hasCachedData) {
+        setError('Unable to load discovery stream. Please check your connection.');
+      }
     } finally {
       setLoading(false);
     }
@@ -84,15 +95,15 @@ export const Home: React.FC = () => {
   // Use curated playlist if available, otherwise build featured from trending
   const heroPlaylist: Playlist = curatedPlaylists[activeSlideIndex] || curatedPlaylists[0] || {
     id: 'featured-master',
-    name: 'Blinding Lights & Global Chartbusters',
-    title: 'Blinding Lights & Global Chartbusters',
-    subtitle: 'Curated by AwnishX Music Studio',
+    name: trendingNow[0]?.title ? `${trendingNow[0].title} & Global Chartbusters` : 'Global Chartbusters',
+    title: trendingNow[0]?.title ? `${trendingNow[0].title} & Global Chartbusters` : 'Global Chartbusters',
+    subtitle: 'Curated by AwnishX Music Studio with JioSaavn, FlipMusix & Gaana streams',
     type: 'playlist',
     image: trendingNow[0]?.image || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
     songCount: trendingNow.length || 24,
     songs: trendingNow,
-    artist: 'Various Artists',
-    language: 'English, Hindi',
+    artist: trendingNow[0]?.artist || 'Top Artists',
+    language: 'Hindi, Punjabi, English',
     explicit: false,
     playCount: 1450000
   };
@@ -114,191 +125,190 @@ export const Home: React.FC = () => {
   // Mobile Now Playing Progress
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  const isInitialLoading = loading && !hasCachedData;
+
   return (
     <div className="p-3 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-32">
       {/* ============================================================ */}
       {/* 1. FEATURED / CURATED PLAYLIST HERO CARD */}
       {/* ============================================================ */}
-      <div className="space-y-2.5">
-        {/* Desktop Container: Warm Sand Editorial Card */}
-        {/* Mobile Container: Warm Deep Crimson/Amber Card */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#38190F] via-[#261109] to-[#140803] lg:from-[#EFE7DC] lg:via-[#E8DFD3] lg:to-[#E2D8CC] text-white lg:text-[#18181A] p-4 sm:p-7 lg:p-10 shadow-xl border border-white/10 lg:border-[#E0D7CB]">
-          {/* Subtle warm glow accents */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 lg:bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-orange-600/10 lg:bg-orange-300/10 rounded-full blur-2xl pointer-events-none" />
+      {isInitialLoading ? (
+        <HeroPlaylistSkeleton />
+      ) : (
+        <div className="space-y-2.5">
+          {/* Desktop Container: Warm Sand Editorial Card */}
+          {/* Mobile Container: Warm Deep Crimson/Amber Card */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#38190F] via-[#261109] to-[#140803] lg:from-[#EFE7DC] lg:via-[#E8DFD3] lg:to-[#E2D8CC] text-white lg:text-[#18181A] p-4 sm:p-7 lg:p-10 shadow-xl border border-white/10 lg:border-[#E0D7CB]">
+            {/* Subtle warm glow accents */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 lg:bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-orange-600/10 lg:bg-orange-300/10 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 lg:gap-8">
-            {/* Left Column: Playlist Meta & Title */}
-            <div className="space-y-2 sm:space-y-3.5 max-w-lg w-full">
-              <span className="inline-block text-[10px] sm:text-[11px] font-bold tracking-widest text-[#E5F939] lg:text-[#66666A] uppercase">
-                CURATED PLAYLIST
-              </span>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 lg:gap-8">
+              {/* Left Column: Playlist Meta & Title */}
+              <div className="space-y-2 sm:space-y-3.5 max-w-lg w-full">
+                <span className="inline-block text-[10px] sm:text-[11px] font-bold tracking-widest text-[#E5F939] lg:text-[#66666A] uppercase">
+                  CURATED PLAYLIST
+                </span>
 
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-title font-black tracking-tight leading-none text-white lg:text-[#161618] uppercase">
-                {heroPlaylist.name || heroPlaylist.title || 'BLINDING LIGHT'}
-              </h1>
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-title font-black tracking-tight leading-none text-white lg:text-[#161618] uppercase">
+                  {heroPlaylist.name || heroPlaylist.title || 'DISCOVER MUSIC'}
+                </h1>
 
-              <p className="text-xs sm:text-sm font-serif-italic text-zinc-300 lg:text-[#484649] line-clamp-2 leading-relaxed font-normal">
-                {(heroPlaylist as any).subtitle || heroPlaylist.artist || 'Enjoy vivid emotions with this stunning music album. Each track is a story.'}
-              </p>
+                <p className="text-xs sm:text-sm font-serif-italic text-zinc-300 lg:text-[#484649] line-clamp-2 leading-relaxed font-normal">
+                  {(heroPlaylist as any).subtitle || heroPlaylist.artist || 'Enjoy vivid emotions with this stunning curated collection. Each track is a story.'}
+                </p>
 
-              {/* Meta badges: Like, Song Count, Duration */}
-              <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] sm:text-xs font-medium text-zinc-300 lg:text-[#66666A] pt-0.5">
-                <button
-                  onClick={() => {
-                    if (heroPlaylist.songs?.[0]) toggleLike(heroPlaylist.songs[0]);
-                  }}
-                  className="flex items-center gap-1.5 hover:text-[#E5F939] lg:hover:text-black transition"
-                >
-                  <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${heroLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-300 lg:text-[#66666A]'}`} />
-                  <span>83,012 Likes</span>
-                </button>
+                {/* Meta badges: Like, Song Count, Duration */}
+                <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] sm:text-xs font-medium text-zinc-300 lg:text-[#66666A] pt-0.5">
+                  <button
+                    onClick={() => {
+                      if (heroPlaylist.songs?.[0]) toggleLike(heroPlaylist.songs[0]);
+                    }}
+                    className="flex items-center gap-1.5 hover:text-[#E5F939] lg:hover:text-black transition"
+                  >
+                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${heroLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-300 lg:text-[#66666A]'}`} />
+                    <span>83,012 Likes</span>
+                  </button>
 
-                <span>•</span>
-                <span>{heroPlaylist.songCount || heroPlaylist.songs?.length || 18} Songs, 39 min 43 sec</span>
+                  <span>•</span>
+                  <span>{heroPlaylist.songCount || heroPlaylist.songs?.length || 18} Songs</span>
+                </div>
+
+                {/* Play Button Row */}
+                <div className="pt-1.5 flex items-center gap-3">
+                  {/* Mobile Pill Button */}
+                  <button
+                    onClick={handleHeroPlay}
+                    className="flex lg:hidden items-center gap-2 px-5 py-2 rounded-full bg-[#E5F939] text-black font-extrabold text-xs shadow-xl active:scale-95 transition-all"
+                  >
+                    {isHeroPlaying ? (
+                      <>
+                        <Pause className="w-3.5 h-3.5 fill-current" />
+                        <span>Pause Now</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                        <span>Play Now</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Desktop Circular / Pill Play Button */}
+                  <button
+                    onClick={handleHeroPlay}
+                    className="hidden lg:flex items-center gap-3 px-6 py-3 rounded-full bg-[#18181A] hover:bg-black text-white hover:text-[#E5F939] font-bold text-xs shadow-xl hover:scale-105 active:scale-95 transition-all group"
+                  >
+                    {isHeroPlaying ? (
+                      <>
+                        <Pause className="w-4 h-4 fill-current" />
+                        <span>Pause Playlist</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 fill-current ml-0.5 text-[#E5F939]" />
+                        <span>Play Playlist</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
-              {/* Play Button Row */}
-              <div className="pt-1.5 flex items-center gap-3">
-                {/* Mobile Pill Button */}
-                <button
-                  onClick={handleHeroPlay}
-                  className="flex lg:hidden items-center gap-2 px-5 py-2 rounded-full bg-[#E5F939] text-black font-extrabold text-xs shadow-xl active:scale-95 transition-all"
-                >
-                  {isHeroPlaying ? (
-                    <>
-                      <Pause className="w-3.5 h-3.5 fill-current" />
-                      <span>Pause Now</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                      <span>Play Now</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Desktop Circular / Pill Play Button */}
-                <button
-                  onClick={handleHeroPlay}
-                  className="hidden lg:flex items-center gap-3 px-6 py-3 rounded-full bg-[#18181A] hover:bg-black text-white hover:text-[#E5F939] font-bold text-xs shadow-xl hover:scale-105 active:scale-95 transition-all group"
-                >
-                  {isHeroPlaying ? (
-                    <>
-                      <Pause className="w-4 h-4 fill-current" />
-                      <span>Pause Playlist</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 fill-current ml-0.5 text-[#E5F939]" />
-                      <span>Play Playlist</span>
-                    </>
-                  )}
-                </button>
+              {/* Right Column: Hero Artwork */}
+              <div
+                className="relative w-36 h-36 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0 border border-white/10 lg:border-[#D8CFBF] group cursor-pointer"
+                onClick={handleHeroPlay}
+              >
+                <ImageWithFallback
+                  src={heroPlaylist.image}
+                  alt={heroPlaylist.name || 'Hero'}
+                  fallbackTitle={heroPlaylist.name}
+                  type="playlist"
+                  containerClassName="w-full h-full"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl font-bold">
+                    <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Column: Hero Artwork */}
+          {/* Carousel Dots */}
+          <div className="flex lg:hidden items-center justify-center gap-1.5 pt-0.5">
+            <span className="w-4 h-1.5 rounded-full bg-[#E5F939] transition-all" />
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 2. MOBILE NOW PLAYING CARD */}
+      {/* ============================================================ */}
+      {currentSong && (
+        <div className="block lg:hidden rounded-2xl bg-[#12151C] border border-white/5 p-3.5 sm:p-4 shadow-2xl select-none">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex items-end gap-0.5 h-3.5">
+                <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '70%', animationDuration: '0.6s' }} />
+                <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.8s' }} />
+                <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '40%', animationDuration: '0.5s' }} />
+              </div>
+              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+                Now Playing
+              </span>
+            </div>
+
+            <button
+              onClick={() => setIsFullscreenOpen(true)}
+              className="text-[11px] font-bold text-[#E5F939] flex items-center gap-1 hover:underline"
+            >
+              <span>Full Player</span>
+              <Maximize2 className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
             <div
-              className="relative w-36 h-36 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0 border border-white/10 lg:border-[#D8CFBF] group cursor-pointer"
-              onClick={handleHeroPlay}
+              className="relative w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 shadow cursor-pointer"
+              onClick={() => setIsFullscreenOpen(true)}
             >
               <ImageWithFallback
-                src={heroPlaylist.image}
-                alt={heroPlaylist.name || 'Hero'}
-                fallbackTitle={heroPlaylist.name}
-                type="playlist"
+                src={currentSong.image}
+                alt={currentSong.title}
+                fallbackTitle={currentSong.title}
+                type="song"
                 containerClassName="w-full h-full"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[#E5F939] text-black flex items-center justify-center shadow-xl font-bold">
-                  <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Mobile 4 Carousel Dots */}
-        <div className="flex lg:hidden items-center justify-center gap-1.5 pt-0.5">
-          <span className="w-4 h-1.5 rounded-full bg-[#E5F939] transition-all" />
-          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
-          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
-          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 transition-all" />
-        </div>
-      </div>
+            <div className="flex-1 min-w-0" onClick={() => setIsFullscreenOpen(true)}>
+              <h4 className="text-sm font-bold text-white truncate tracking-tight">
+                {currentSong.title}
+              </h4>
+              <p className="text-xs text-zinc-400 truncate">
+                {currentSong.artist}
+              </p>
 
-      {/* ============================================================ */}
-      {/* 2. MOBILE NOW PLAYING CARD (Exact match to Reference 2) */}
-      {/* ============================================================ */}
-      <div className="block lg:hidden rounded-2xl bg-[#12151C] border border-white/5 p-3.5 sm:p-4 shadow-2xl select-none">
-        {/* Header: Equalizer + Title + Full Player button */}
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2">
-            <div className="flex items-end gap-0.5 h-3.5">
-              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '70%', animationDuration: '0.6s' }} />
-              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '100%', animationDuration: '0.4s' }} />
-              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '50%', animationDuration: '0.8s' }} />
-              <span className="w-0.5 bg-[#E5F939] rounded-full animate-bounce" style={{ height: '85%', animationDuration: '0.5s' }} />
-            </div>
-            <span className="text-xs font-serif-italic font-bold text-white tracking-tight">
-              Now Playing
-            </span>
-          </div>
-
-          <button
-            onClick={() => setIsFullscreenOpen(true)}
-            className="text-[11px] font-semibold text-zinc-300 bg-[#1F2430] hover:bg-[#2A3140] px-2.5 py-1 rounded-full flex items-center gap-1 active:scale-95 transition"
-          >
-            <span>Full Player</span>
-            <Play className="w-2 h-2 fill-current ml-0.5" />
-          </button>
-        </div>
-
-        {currentSong ? (
-          <div className="flex items-center gap-3">
-            {/* Song cover art */}
-            <ImageWithFallback
-              src={currentSong.image}
-              alt={currentSong.title}
-              fallbackTitle={currentSong.title}
-              type="song"
-              containerClassName="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 shadow-md ring-1 ring-white/10"
-              className="w-full h-full object-cover"
-            />
-
-            {/* Song title, artist & seekable progress line */}
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="pr-1">
-                <h3 className="text-xs font-bold text-white truncate leading-tight">
-                  {currentSong.title}
-                </h3>
-                <p className="text-[11px] font-serif-italic text-[#888890] truncate mt-0.5 font-medium">
-                  {currentSong.artist}
-                </p>
-              </div>
-
-              {/* Seekable Progress Bar with circular white thumb */}
-              <div className="space-y-0.5">
-                <div className="relative w-full h-1 bg-zinc-800 rounded-full flex items-center cursor-pointer">
+              <div className="mt-1.5 space-y-1">
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#E5F939] rounded-full"
+                    className="h-full bg-[#E5F939] rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
-                  <div
-                    className="absolute w-2.5 h-2.5 bg-white rounded-full shadow-md -translate-x-1/2 pointer-events-none"
-                    style={{ left: `${progressPercent}%` }}
-                  />
                 </div>
-                <div className="flex items-center justify-between text-[9px] font-mono text-[#888890]">
+                <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
                   <span>{formatDuration(currentTime)}</span>
                   <span>{formatDuration(duration)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Large Yellow/Lime Circular Play/Pause Button */}
             <button
               onClick={togglePlay}
               aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -311,22 +321,17 @@ export const Home: React.FC = () => {
               )}
             </button>
           </div>
-        ) : (
-          <div
-            onClick={handleHeroPlay}
-            className="py-3 text-center text-xs text-[#888890] bg-[#171B24] rounded-xl border border-dashed border-white/10 cursor-pointer hover:border-[#E5F939]/50 transition"
-          >
-            Tap to play featured playlist
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {error && <ErrorState message={error} onRetry={loadHomeData} />}
 
-      {loading ? (
+      {isInitialLoading ? (
         <div className="space-y-8">
-          <SectionSkeleton count={6} isCircle />
+          <HorizontalArtistSkeleton />
           <SectionSkeleton count={6} />
+          <SectionSkeleton count={6} />
+          <GenrePillsSkeleton />
           <SectionSkeleton count={6} />
         </div>
       ) : (
