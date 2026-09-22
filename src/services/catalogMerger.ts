@@ -70,6 +70,11 @@ export function isDuplicateSong(a: Song, b: Song): boolean {
   if (!a || !b) return false;
   if (a.id === b.id) return true;
 
+  // For YouTube results, use video ID as primary unique identifier
+  if (a.videoId && b.videoId) {
+    return a.videoId === b.videoId;
+  }
+
   const rawTitleA = a.title || '';
   const rawTitleB = b.title || '';
 

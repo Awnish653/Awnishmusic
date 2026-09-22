@@ -1,4 +1,5 @@
 import { Song, AudioQualityKey } from '../types/music';
+import { getYouTubeAudioStream } from '../services/youtube/youtubeApi';
 
 export interface DownloadProgress {
   songId: string;
@@ -42,6 +43,25 @@ export async function downloadSongFile(
     streamUrl = match?.url || song.playableUrl || song.audioUrls[0]?.url || '';
   } else {
     streamUrl = song.playableUrl || '';
+  }
+
+  // If YouTube song without resolved stream URL, fetch on demand
+  if (!streamUrl && (song.provider === 'youtube' || song.source === 'youtube' || (song.id && song.id.startsWith('yt_')))) {
+    const vidId = song.videoId || song.id.replace(/^(yt_|youtube_)/, '');
+    if (vidId) {
+      onProgress?.({
+        songId: song.id,
+        status: 'preparing',
+        progress: 10,
+        message: 'Resolving YouTube stream link...'
+      });
+      try {
+        const fetched = await getYouTubeAudioStream(vidId);
+        if (fetched) streamUrl = fetched;
+      } catch (e) {
+        console.warn('Failed to resolve stream for download:', e);
+      }
+    }
   }
 
   if (!streamUrl) {

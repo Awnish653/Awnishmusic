@@ -3,6 +3,7 @@ import Hls from 'hls.js';
 import { Song, RepeatMode, AudioQualityKey } from '../types/music';
 import { storage } from '../utils/storage';
 import { getSongById, getSongSuggestions, searchSongs } from '../services/api';
+import { getYouTubeAudioStream, invalidateYouTubeStream } from '../services/youtube/youtubeApi';
 import { sanitizeAudioUrl } from '../utils/formatters';
 import { isValidAudioStream } from '../services/normalizers';
 
@@ -81,6 +82,13 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const previousVolumeRef = useRef<number>(volume);
+  const currentSongRef = useRef<Song | null>(null);
+  const ytRetryCountRef = useRef<number>(0);
+
+  // Keep currentSongRef synchronized
+  useEffect(() => {
+    currentSongRef.current = currentSong;
+  }, [currentSong]);
 
   // Initialize HTML5 Audio instance
   useEffect(() => {
@@ -120,11 +128,48 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsPlaying(false);
     };
 
-    const handleError = (e: any) => {
+    const handleError = async (e: any) => {
       console.warn('Audio playback error event:', e);
+      const playingSong = currentSongRef.current;
+      const isYt = Boolean(
+        playingSong && (
+          playingSong.provider === 'youtube' ||
+          playingSong.source === 'youtube' ||
+          (playingSong.id && (playingSong.id.startsWith('yt_') || playingSong.id.startsWith('youtube_'))) ||
+          Boolean(playingSong.videoId)
+        )
+      );
+
+      // Handle stream expiry with 1 retry for YouTube tracks
+      if (isYt && playingSong && ytRetryCountRef.current < 1) {
+        ytRetryCountRef.current += 1;
+        const vId = playingSong.videoId || (playingSong.id ? playingSong.id.replace(/^(yt_|youtube_)/, '') : '');
+        if (vId) {
+          console.info(`[YouTube Playback] Stream failed/expired for ${vId}. Requesting fresh stream URL (retry 1/1)...`);
+          try {
+            invalidateYouTubeStream(vId);
+            const freshStream = await getYouTubeAudioStream(vId, true);
+            if (freshStream && isValidAudioStream(freshStream) && audioRef.current) {
+              audioRef.current.src = freshStream;
+              audioRef.current.load();
+              await audioRef.current.play();
+              setIsPlaying(true);
+              setError(null);
+              return;
+            }
+          } catch (retryErr) {
+            console.warn('[YouTube Playback] Auto-refresh retry failed:', retryErr);
+          }
+        }
+      }
+
       setIsLoading(false);
       setIsPlaying(false);
-      setError('Unable to stream audio track. Trying fallback or next track...');
+      if (isYt) {
+        setError('Unable to stream this YouTube track right now. Please select another track or source.');
+      } else {
+        setError('Unable to stream audio track. Trying fallback or next track...');
+      }
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -240,27 +285,92 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       let resolvedSong: Song = { ...song };
+      const isYt = Boolean(
+        song.provider === 'youtube' ||
+        song.source === 'youtube' ||
+        (song.id && (song.id.startsWith('yt_') || song.id.startsWith('youtube_'))) ||
+        Boolean(song.videoId)
+      );
 
-      // If song lacks valid stream or audioUrls, fetch full song details
-      const hasValidPlayableUrl = isValidAudioStream(resolvedSong.playableUrl);
-      const hasValidAudioList = Array.isArray(resolvedSong.audioUrls) && resolvedSong.audioUrls.some(a => isValidAudioStream(a.url));
+      if (isYt) {
+        ytRetryCountRef.current = 0;
+        const vId = song.videoId || (song.id ? song.id.replace(/^(yt_|youtube_)/, '') : '');
 
-      if (!hasValidPlayableUrl || !hasValidAudioList) {
-        try {
-          if (song.id) {
-            const detailed = await getSongById(song.id, audioQuality);
-            if (detailed && (isValidAudioStream(detailed.playableUrl) || detailed.audioUrls.some(a => isValidAudioStream(a.url)))) {
-              resolvedSong = {
-                ...resolvedSong,
-                ...detailed,
-                image: detailed.image || resolvedSong.image,
-                title: detailed.title || resolvedSong.title,
-                artist: detailed.artist || resolvedSong.artist,
-              };
-            }
+        // Fetch fresh stream on demand (only when user plays the song)
+        let ytStream: string | null = null;
+        if (vId) {
+          try {
+            ytStream = await getYouTubeAudioStream(vId);
+          } catch (ytErr) {
+            console.warn('[YouTube Playback] getYouTubeAudioStream failed:', ytErr);
           }
-        } catch (e) {
-          console.warn('Could not fetch complete song detail, using basic model:', e);
+        }
+
+        if (ytStream && isValidAudioStream(ytStream)) {
+          resolvedSong.playableUrl = ytStream;
+          resolvedSong.audioUrls = [{ quality: 'best', url: ytStream }];
+        } else {
+          // If direct YouTube audio stream extraction failed (e.g. YouTube bot verification or restriction),
+          // search across available catalogs (JioSaavn, Flip Musix, Gaana) using the track title and artist
+          try {
+            const rawTitle = song.title || '';
+            const cleanTitle = rawTitle
+              .replace(/\(.*?\)|\[.*?\]/g, '')
+              .replace(/(official\s*(video|audio|music\s*video|lyric\s*video)|lyric\s*video|full\s*song|hd|4k|remastered|episode\s*\d+)/gi, '')
+              .replace(/\|.*$/g, '')
+              .replace(/[-_:]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+
+            const query = cleanTitle ? `${cleanTitle} ${song.artist || ''}`.trim() : rawTitle;
+            if (query) {
+              const candidates = await searchSongs(query, audioQuality);
+              const altSong = candidates.find(c =>
+                !c.id.startsWith('yt_') &&
+                (isValidAudioStream(c.playableUrl) || (Array.isArray(c.audioUrls) && c.audioUrls.some(a => isValidAudioStream(a.url))))
+              );
+
+              if (altSong) {
+                const altUrl = isValidAudioStream(altSong.playableUrl)
+                  ? altSong.playableUrl
+                  : altSong.audioUrls.find(a => isValidAudioStream(a.url))?.url;
+
+                if (altUrl) {
+                  ytStream = altUrl;
+                  resolvedSong.playableUrl = altUrl;
+                  resolvedSong.audioUrls = altSong.audioUrls?.length ? altSong.audioUrls : [{ quality: 'best', url: altUrl }];
+                  if (!resolvedSong.image && altSong.image) {
+                    resolvedSong.image = altSong.image;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('[YouTube Playback] Alternate audio catalog search failed:', e);
+          }
+        }
+      } else {
+        // If song lacks valid stream or audioUrls, fetch full song details
+        const hasValidPlayableUrl = isValidAudioStream(resolvedSong.playableUrl);
+        const hasValidAudioList = Array.isArray(resolvedSong.audioUrls) && resolvedSong.audioUrls.some(a => isValidAudioStream(a.url));
+
+        if (!hasValidPlayableUrl || !hasValidAudioList) {
+          try {
+            if (song.id) {
+              const detailed = await getSongById(song.id, audioQuality);
+              if (detailed && (isValidAudioStream(detailed.playableUrl) || detailed.audioUrls.some(a => isValidAudioStream(a.url)))) {
+                resolvedSong = {
+                  ...resolvedSong,
+                  ...detailed,
+                  image: detailed.image || resolvedSong.image,
+                  title: detailed.title || resolvedSong.title,
+                  artist: detailed.artist || resolvedSong.artist,
+                };
+              }
+            }
+          } catch (e) {
+            console.warn('Could not fetch complete song detail, using basic model:', e);
+          }
         }
       }
 
@@ -274,11 +384,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       if (!streamUrl) {
+        if (isYt) {
+          throw new Error('Unable to extract playable audio stream for this YouTube track. Please try another song.');
+        }
         throw new Error('No playable audio stream available for this song. Please try another song.');
       }
 
       resolvedSong.playableUrl = streamUrl;
       setCurrentSong(resolvedSong);
+      currentSongRef.current = resolvedSong;
       storage.addRecentlyPlayed(resolvedSong);
 
       // Handle queue update
@@ -371,8 +485,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       }
     } catch (err: any) {
-      console.error('Error starting playback:', err);
-      setError(err?.message || 'Failed to play track. Audio stream could not be loaded.');
+      console.warn('Playback warning:', err);
+      const isYt = Boolean(
+        song.provider === 'youtube' ||
+        song.source === 'youtube' ||
+        (song.id && (song.id.startsWith('yt_') || song.id.startsWith('youtube_'))) ||
+        Boolean(song.videoId)
+      );
+      setError(isYt ? 'Unable to stream this YouTube track right now. Please select another track or source.' : (err?.message || 'Failed to play track. Audio stream could not be loaded.'));
       setIsPlaying(false);
     } finally {
       setIsLoading(false);

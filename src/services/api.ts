@@ -41,6 +41,14 @@ import {
   getGaanaTrack,
   pingGaana
 } from './gaana/gaanaApi';
+import {
+  searchYouTubeSongs,
+  getYouTubeSongById,
+  getYouTubeAudioStream,
+  invalidateYouTubeStream,
+  pingYouTube,
+  YOUTUBE_API_BASE
+} from './youtube/youtubeApi';
 import { storage } from '../utils/storage';
 
 const API_BASE_URL = 'https://jiosaavanapi-flame.vercel.app';
@@ -96,21 +104,23 @@ export async function search(query: string, preferredQuality?: AudioQualityKey):
 
   const cleanQuery = query.trim();
 
-  // Execute queries to all APIs independently and concurrently (JioSaavn + Flip Musix + Gaana)
+  // Execute queries to all APIs independently and concurrently (JioSaavn + Flip Musix + Gaana + YouTube)
   const [
     jioGlobalRes,
     jioSongsRes,
     flipSongsRes,
     flipAlbumsRes,
     flipArtistsRes,
-    gaanaSongsRes
+    gaanaSongsRes,
+    youtubeSongsRes
   ] = await Promise.allSettled([
     fetchFromApi<any>(`/api/search?query=${encodeURIComponent(cleanQuery)}`),
     searchJioSongs(cleanQuery, preferredQuality),
     searchFlipSongs(cleanQuery, 1),
     searchFlipAlbums(cleanQuery, 1),
     searchFlipArtists(cleanQuery, 1),
-    searchGaanaSongs(cleanQuery, 15, preferredQuality)
+    searchGaanaSongs(cleanQuery, 15, preferredQuality),
+    searchYouTubeSongs(cleanQuery, 10)
   ]);
 
   // Extract API 1 (JioSaavn) results
@@ -136,8 +146,11 @@ export async function search(query: string, preferredQuality?: AudioQualityKey):
   // Extract API 3 (Gaana) results
   const gaanaSongs = gaanaSongsRes.status === 'fulfilled' ? gaanaSongsRes.value : [];
 
+  // Extract API 4 (YouTube Music) results
+  const youtubeSongs = youtubeSongsRes.status === 'fulfilled' ? youtubeSongsRes.value : [];
+
   // Merge and deduplicate catalogs across all working sources
-  const mergedSongs = mergeMultipleSongLists([jioSongs, flipSongs, gaanaSongs]);
+  const mergedSongs = mergeMultipleSongLists([jioSongs, flipSongs, gaanaSongs, youtubeSongs]);
   const mergedAlbums = mergeAlbumLists(jioAlbums, flipAlbums);
   const mergedArtists = mergeArtistLists(jioArtists, flipArtists);
   const mergedPlaylists = jioPlaylists;
@@ -166,22 +179,24 @@ async function searchJioSongs(query: string, preferredQuality?: AudioQualityKey,
 }
 
 /**
- * Unified Search Songs across all APIs (JioSaavn + Flip Musix + Gaana)
+ * Unified Search Songs across all APIs (JioSaavn + Flip Musix + Gaana + YouTube)
  */
 export async function searchSongs(query: string, preferredQuality?: AudioQualityKey, page: number = 1): Promise<Song[]> {
   if (!query || !query.trim()) return [];
 
-  const [jioRes, flipRes, gaanaRes] = await Promise.allSettled([
+  const [jioRes, flipRes, gaanaRes, ytRes] = await Promise.allSettled([
     searchJioSongs(query, preferredQuality, page),
     searchFlipSongs(query, page),
-    page === 1 ? searchGaanaSongs(query, 15, preferredQuality) : Promise.resolve([])
+    page === 1 ? searchGaanaSongs(query, 15, preferredQuality) : Promise.resolve([]),
+    page === 1 ? searchYouTubeSongs(query, 10) : Promise.resolve([])
   ]);
 
   const jioSongs = jioRes.status === 'fulfilled' ? jioRes.value : [];
   const flipSongs = flipRes.status === 'fulfilled' ? flipRes.value : [];
   const gaanaSongs = gaanaRes.status === 'fulfilled' ? gaanaRes.value : [];
+  const youtubeSongs = ytRes.status === 'fulfilled' ? ytRes.value : [];
 
-  return mergeMultipleSongLists([jioSongs, flipSongs, gaanaSongs]);
+  return mergeMultipleSongLists([jioSongs, flipSongs, gaanaSongs, youtubeSongs]);
 }
 
 /**
@@ -250,6 +265,19 @@ export async function searchPlaylists(query: string, page: number = 1): Promise<
 export async function getSongById(id: string, preferredQuality?: AudioQualityKey): Promise<Song | null> {
   if (!id) return null;
 
+  // Case -1: YouTube track
+  if (id.startsWith('yt_') || id.startsWith('youtube_')) {
+    try {
+      const ytSong = await getYouTubeSongById(id);
+      if (ytSong) {
+        return ytSong;
+      }
+    } catch (e) {
+      console.warn(`[YouTube API] getSongById(${id}) failed:`, e);
+    }
+    return null;
+  }
+
   // Case 0: Gaana track
   if (id.startsWith('gaana_')) {
     try {
@@ -261,6 +289,7 @@ export async function getSongById(id: string, preferredQuality?: AudioQualityKey
     } catch (e) {
       console.warn(`[Gaana API] getSongById(${id}) failed:`, e);
     }
+    return null;
   }
 
   // Case 1: Flip Musix track
@@ -278,6 +307,7 @@ export async function getSongById(id: string, preferredQuality?: AudioQualityKey
     } catch (e) {
       console.warn(`[FlipMusix] getSongById(${id}) failed:`, e);
     }
+    return null;
   }
 
   // Case 2: JioSaavn track ID
@@ -334,7 +364,7 @@ export async function getSongById(id: string, preferredQuality?: AudioQualityKey
 export async function getSongSuggestions(id: string, preferredQuality?: AudioQualityKey): Promise<Song[]> {
   if (!id) return [];
 
-  if (id.startsWith('flip_')) {
+  if (id.startsWith('flip_') || id.startsWith('yt_') || id.startsWith('youtube_') || id.startsWith('gaana_')) {
     try {
       const trending = await getFlipTrendingSongs(1);
       return trending.filter(s => s.id !== id).slice(0, 10);
@@ -364,6 +394,10 @@ export async function getAlbumById(id: string, preferredQuality?: AudioQualityKe
     return getFlipAlbumById(id);
   }
 
+  if (id.startsWith('yt_') || id.startsWith('youtube_') || id.startsWith('gaana_')) {
+    return null;
+  }
+
   try {
     const json = await fetchFromApi<any>(`/api/albums?id=${encodeURIComponent(id)}`);
     const raw = json?.data;
@@ -387,6 +421,17 @@ export async function getArtistById(id: string, preferredQuality?: AudioQualityK
 
   if (id.startsWith('flip_')) {
     return getFlipArtistProfile(id);
+  }
+
+  if (id.startsWith('yt_') || id.startsWith('youtube_') || id.startsWith('gaana_')) {
+    const cleanName = decodeURIComponent(id.replace(/^(yt_artist_|gaana_artist_)/, ''));
+    if (cleanName && cleanName !== id) {
+      try {
+        const searchRes = await searchArtists(cleanName);
+        if (searchRes.length > 0) return searchRes[0];
+      } catch {}
+    }
+    return null;
   }
 
   try {
@@ -429,6 +474,10 @@ export async function getPlaylistById(id: string, preferredQuality?: AudioQualit
 
   if (id.startsWith('flip_')) {
     return getFlipPlaylistById(id);
+  }
+
+  if (id.startsWith('yt_') || id.startsWith('youtube_') || id.startsWith('gaana_')) {
+    return null;
   }
 
   try {
@@ -792,5 +841,11 @@ export {
   getFlipStreamUrl,
   searchGaanaSongs,
   getGaanaTrack,
-  pingGaana
+  pingGaana,
+  searchYouTubeSongs,
+  getYouTubeSongById,
+  getYouTubeAudioStream,
+  invalidateYouTubeStream,
+  pingYouTube,
+  YOUTUBE_API_BASE
 };

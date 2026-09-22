@@ -12,6 +12,22 @@ const STORAGE_KEYS = {
   HOME_CACHE: 'awnish_home_feed_cache_v1'
 };
 
+/**
+ * Sanitizes a song before persistent storage.
+ * For YouTube songs, ensures temporary expiring stream_url is never saved as a permanent value.
+ */
+function sanitizeSongForStorage(song: Song): Song {
+  if (!song) return song;
+  if (song.source === 'youtube' || song.provider === 'youtube' || (song.id && song.id.startsWith('yt_'))) {
+    return {
+      ...song,
+      playableUrl: '',
+      audioUrls: []
+    };
+  }
+  return song;
+}
+
 export const storage = {
   getHomeDataCache(): any | null {
     try {
@@ -49,7 +65,8 @@ export const storage = {
 
   saveLikedSongs(songs: Song[]) {
     try {
-      localStorage.setItem(STORAGE_KEYS.LIKED_SONGS, JSON.stringify(songs));
+      const sanitized = songs.map(sanitizeSongForStorage);
+      localStorage.setItem(STORAGE_KEYS.LIKED_SONGS, JSON.stringify(sanitized));
     } catch (e) {
       console.warn('Failed to save liked songs:', e);
     }
@@ -65,7 +82,7 @@ export const storage = {
       updated = list.filter(s => s.id !== song.id);
       isLiked = false;
     } else {
-      updated = [song, ...list];
+      updated = [sanitizeSongForStorage(song), ...list];
       isLiked = true;
     }
     this.saveLikedSongs(updated);
@@ -91,7 +108,8 @@ export const storage = {
     const list = this.getRecentlyPlayed();
     // Remove existing entry of this song if already in history, then prepend
     const filtered = list.filter(s => s.id !== song.id);
-    const updated = [song, ...filtered].slice(0, 50); // Keep max 50 items
+    const sanitized = sanitizeSongForStorage(song);
+    const updated = [sanitized, ...filtered].slice(0, 50); // Keep max 50 items
     try {
       localStorage.setItem(STORAGE_KEYS.RECENT_PLAYED, JSON.stringify(updated));
     } catch (e) {
@@ -156,7 +174,7 @@ export const storage = {
     if (target.songs.some(s => s.id === song.id)) {
       return true; // Already in playlist
     }
-    target.songs.push(song);
+    target.songs.push(sanitizeSongForStorage(song));
     target.updatedAt = Date.now();
     if (!target.coverImage && song.image) {
       target.coverImage = song.image;
