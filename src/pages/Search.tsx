@@ -439,7 +439,7 @@ export const Search: React.FC = () => {
                     </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    {allResults.songs.slice(0, 8).map((song, i) => (
+                    {allResults.songs.map((song, i) => (
                       <SongRow
                         key={song.id}
                         song={song}
@@ -467,7 +467,7 @@ export const Search: React.FC = () => {
                     </button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
-                    {allResults.artists.slice(0, 6).map(artist => (
+                    {allResults.artists.map(artist => (
                       <ArtistCard key={artist.id} artist={artist} />
                     ))}
                   </div>
@@ -490,7 +490,7 @@ export const Search: React.FC = () => {
                     </button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
-                    {allResults.albums.slice(0, 6).map(album => (
+                    {allResults.albums.map(album => (
                       <AlbumCard key={album.id} album={album} />
                     ))}
                   </div>
@@ -513,7 +513,7 @@ export const Search: React.FC = () => {
                     </button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
-                    {allResults.playlists.slice(0, 6).map(playlist => (
+                    {allResults.playlists.map(playlist => (
                       <PlaylistCard key={playlist.id} playlist={playlist} />
                     ))}
                   </div>
