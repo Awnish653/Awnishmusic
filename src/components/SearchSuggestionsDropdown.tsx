@@ -76,7 +76,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
       } finally {
         setLoading(false);
       }
-    }, 280);
+    }, 180);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -223,7 +223,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                 </div>
 
                 <div className="space-y-0.5">
-                  {results.songs.slice(0, 4).map((song) => (
+                  {results.songs.slice(0, 8).map((song) => (
                     <div
                       key={song.id}
                       onClick={() => handleSongClick(song)}
@@ -271,7 +271,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 p-1">
-                  {results.artists.slice(0, 3).map((artist) => (
+                  {results.artists.slice(0, 6).map((artist) => (
                     <div
                       key={artist.id}
                       onClick={() => handleArtistClick(artist)}
@@ -303,7 +303,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                 </div>
 
                 <div className="space-y-0.5">
-                  {results.albums.slice(0, 2).map((album) => (
+                  {results.albums.slice(0, 6).map((album) => (
                     <div
                       key={album.id}
                       onClick={() => handleAlbumClick(album)}
