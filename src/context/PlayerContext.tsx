@@ -90,6 +90,25 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     currentSongRef.current = currentSong;
   }, [currentSong]);
 
+  // Native Android media-session bridge. The website keeps its normal behavior;
+  // Lyra Music receives exact player metadata for the lock-screen notification.
+  useEffect(() => {
+    const native = (window as any).LyraMusicNative;
+    if (!native?.media) return;
+    const song = currentSong;
+    if (!song) return;
+    try {
+      native.media(
+        song.title || 'Lyra Music',
+        song.artist || '',
+        song.image || '',
+        isPlaying ? '1' : '0',
+        String(duration || song.duration || 0),
+        String(currentTime || 0)
+      );
+    } catch {}
+  }, [currentSong?.id, currentSong?.title, currentSong?.artist, currentSong?.image, isPlaying, duration, currentTime]);
+
   // Initialize HTML5 Audio instance
   useEffect(() => {
     const audio = new Audio();
