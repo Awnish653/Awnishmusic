@@ -281,7 +281,7 @@ export const Search: React.FC = () => {
           onClose={() => setIsDropdownOpen(false)}
           onSelectSuggestion={handleSelectRecent}
           isDark={false}
-          className="lg:block hidden"
+          className=""
         />
       </div>
 
