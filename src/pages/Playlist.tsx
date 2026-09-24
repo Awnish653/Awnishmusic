@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Play, Shuffle, ListMusic, Clock, User } from 'lucide-react';
+import { Play, Shuffle, ListMusic, Clock, User, Download } from 'lucide-react';
 import { getPlaylistById } from '../services/api';
 import { Playlist as PlaylistType } from '../types/music';
 import { SongRow } from '../components/SongRow';
@@ -79,6 +79,13 @@ export const Playlist: React.FC = () => {
     }
   };
 
+  const handleDownloadAll = () => {
+    const native = (window as any).LyraMusicNative;
+    if (native?.downloadPlaylist && songs.length > 0) {
+      native.downloadPlaylist(JSON.stringify(songs));
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto pb-32">
       {/* Hero Header */}
@@ -140,6 +147,18 @@ export const Playlist: React.FC = () => {
               <Shuffle className="w-4 h-4" />
               <span>Shuffle</span>
             </button>
+
+            {(window as any).LyraMusicNative?.downloadPlaylist && (
+              <button
+                onClick={handleDownloadAll}
+                disabled={songs.length === 0}
+                className="flex items-center gap-2 px-5 py-3 rounded-full bg-[#E5F939] text-black font-bold text-xs sm:text-sm shadow-md transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                title={`Download all ${songs.length} songs`}
+              >
+                <Download className="w-4 h-4" />
+                <span>Download All</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
